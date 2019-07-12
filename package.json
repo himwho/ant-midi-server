@@ -1,0 +1,13 @@
+{
+  "name": "ant-midi-server",
+  "version": "0.1.0",
+  "description": "Dockerized server for listening to LAN MIDI and broadcasting it to WAN",
+  "author": "Dylan Marcus <dylan@dylanjmarcus.com>",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "dependencies": {
+    "express": "^4.16.1"
+  }
+}
