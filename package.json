@@ -9,6 +9,9 @@
   },
   "dependencies": {
     "express": "^4.16.1",
+    "jazz-midi": "^1.7.0",
+    "performance-now": "^2.1.0",
+    "web-midi-api": "^2.0.5",
     "webmidi": "^2.3.3"
   }
 }
