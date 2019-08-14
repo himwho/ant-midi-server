@@ -89,8 +89,8 @@ function createSection( label, x, y, width, height ) {
 function setupSynthUI() {
 	synthBox = document.getElementById("synthbox");
 
-	var master = createSection( "master", 501, 254, 355, 98 );	
-	master.appendChild( createDropdown( "midiIn", "midi_in", 280, 15, ["-no MIDI-"], 0, selectMIDIIn ) );
+	var master = createSection( "MIDI", 501, 254, 355, 98 );	
+	master.appendChild( createDropdown( "midiIn", "MIDI Input", 280, 15, ["-no MIDI-"], 0, selectMIDIIn ) );
 	synthBox.appendChild( master );
 
 	keybox = document.getElementById("keybox");
