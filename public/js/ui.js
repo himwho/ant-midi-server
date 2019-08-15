@@ -89,22 +89,8 @@ function createSection( label, x, y, width, height ) {
 function setupSynthUI() {
 	synthBox = document.getElementById("synthbox");
 
-	var master = createSection( "MIDI", 501, 254, 355, 98 );	
-	master.appendChild( createDropdown( "midiIn", "MIDI Input", 280, 15, ["-no MIDI-"], 0, selectMIDIIn ) );
-	synthBox.appendChild( master );
-
-	keybox = document.getElementById("keybox");
-
-	if (window.location.search.substring(1) == "touch") {
-		keybox.addEventListener('touchstart', touchstart);
-		keybox.addEventListener('touchmove', touchmove);
-		keybox.addEventListener('touchend', touchend);
-	} else {
-		keybox.addEventListener('down', pointerDown);
-		keybox.addEventListener('track', pointerMove);
-		keybox.addEventListener('up', pointerUp);
-
-		if (window.location.search.substring(1) == "dbgptr")
-			pointerDebugging = true;
-	}
+	var midi = createSection( "MIDI", 501, 254, 355, 98 );	
+	midi.appendChild( createDropdown( "midiIn", "MIDI Input", 280, 15, ["-no MIDI-"], 0, selectMIDIIn ) );
+	midi.appendChild( createDropdown( "midiOut", "MIDI Output", 280, 15, ["-no MIDI-"], 0, selectMIDIOut ) );
+  synthBox.appendChild( midi );
 } 

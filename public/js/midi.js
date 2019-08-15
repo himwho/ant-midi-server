@@ -12,6 +12,8 @@ function midiMessageReceived( ev ) {
   } else if (cmd == 9) {
     // note on
     noteOn( noteNumber, velocity/127.0);
+    document.getElementById("note").innerHTML = notes[noteNumber-40];
+    document.getElementById("velocity").innerHTML = velocity;
   } else if (cmd == 11) {
     controller( noteNumber, velocity/127.0);
   } else if (cmd == 14) {
@@ -23,9 +25,12 @@ function midiMessageReceived( ev ) {
   console.log( "" + ev.data[0] + " " + ev.data[1] + " " + ev.data[2])
 }
 
-var selectMIDI = null;
+var notes = ["E2", "F2", "F#2", "G2", "G#2", "A2", "A#2", "B2", "C3", "C#3", "D3", "D#3", "E3", "F3", "F#3", "G3", "G#3", "A3", "A#3", "B3", "C4", "C#4", "D4", "D#4", "E4", "F4", "F#4", "G4", "G#4", "A4", "A#4", "B4", "C5", "C#5", "D5", "D#5", "E5", "F5", "F#5", "G5", "G#5", "A5", "A#5", "B5", "C6", "C#6", "D6", "D#6", "E6", "F6", "F#6", "G6", "G#6", "A6", "A#6", "B6", "C7", "C#7", "D7", "D#7", "E7", "F7", "F#7", "G7", "G#7", "A7", "A#7", "B7", "C8", "C#8", "D8", "D#8", "E8", "F8", "F#8", "G8", "G#8", "A8", "A#8", "B8", "C9", "C#9", "D9", "D#9", "E9", "F9", "F#9", "G9", "G#9"]
+var selectMIDIInput = null;
+var selectMIDIOutput = null;
 var midiAccess = null;
 var midiIn = null;
+var midiOut = null;
 
 function selectMIDIIn( ev ) {
   if (midiIn)
@@ -39,9 +44,22 @@ function selectMIDIIn( ev ) {
     midiIn.onmidimessage = midiMessageReceived;
 }
 
+function selectMIDIOut( ev ) {
+  if (midiOut)
+    midiOut.onmidimessage = null;
+  var id = ev.target[ev.target.selectedIndex].value;
+  if ((typeof(midiAccess.outputs) == "function"))   //Old Skool MIDI outputs() code
+    midiOut = midiAccess.outputs()[ev.target.selectedIndex];
+  else
+    midiOut = midiAccess.outputs.get(id);
+  if (midiOut)
+    midiOut.send( [ ev.data[0], ev.data[1], ev.data[2] ] );
+}
+
+
 function populateMIDIInSelect() {
   // clear the MIDI input select
-  selectMIDI.options.length = 0;
+  selectMIDIInput.options.length = 0;
   if (midiIn && midiIn.state=="disconnected")
     midiIn=null;
   var firstInput = null;
@@ -58,7 +76,7 @@ function populateMIDIInSelect() {
     if (midiIn && midiIn==input)
       preferred = true;
 
-    selectMIDI.appendChild(new Option(input.name,input.id,preferred,preferred));
+    selectMIDIInput.appendChild(new Option(input.name,input.id,preferred,preferred));
     if (preferred) {
       midiIn = input;
       midiIn.onmidimessage = midiMessageReceived;
@@ -71,9 +89,42 @@ function populateMIDIInSelect() {
   }
 }
 
+function populateMIDIOutSelect() {
+  // clear the MIDI input select
+  selectMIDIOutput.options.length = 0;
+  if (midiOut && midiOut.state=="disconnected")
+    midiOut=null;
+  var firstOutput = null;
+
+  var outputs=midiAccess.outputs.values();
+  for ( var output = outputs.next(); output && !output.done; output = outputs.next()){
+    output = output.value;
+    if (!firstOutput)
+      firstOutput=output;
+    var str=output.name.toString();
+    var preferred = !midiOut && ((str.indexOf("MPK") != -1)||(str.indexOf("Keyboard") != -1)||(str.indexOf("keyboard") != -1)||(str.indexOf("KEYBOARD") != -1));
+
+    // if we're rebuilding the list, but we already had this port open, reselect it.
+    if (midiOut && midiOut==output)
+      preferred = true;
+
+    selectMIDIOutput.appendChild(new Option(output.name,output.id,preferred,preferred));
+    if (preferred) {
+      midiOut = output;
+      midiOut.onmidimessage = midiIn.onmidimessage;
+    }
+  }
+  if (!midiOut) {
+      midiOut = firstOutput;
+      if (midiOut)
+        midiOut.onmidimessage = midiIn.onmidimessage;
+  }
+}
+
 function midiConnectionStateChange( e ) {
   console.log("connection: " + e.port.name + " " + e.port.connection + " " + e.port.state );
   populateMIDIInSelect();
+  populateMIDIOutSelect();
 }
 
 function onMIDIStarted( midi ) {
@@ -82,10 +133,15 @@ function onMIDIStarted( midi ) {
   midiAccess = midi;
 
   document.getElementById("synthbox").className = "loaded";
-  selectMIDI=document.getElementById("midiIn");
+  selectMIDIInput=document.getElementById("midiIn");
   midi.onstatechange = midiConnectionStateChange;
   populateMIDIInSelect();
-  selectMIDI.onchange = selectMIDIIn;
+  selectMIDIInput.onchange = selectMIDIIn;
+
+  selectMIDIOutput=document.getElementById("midiOut");
+  midi.onstatechange = midiConnectionStateChange;
+  populateMIDIOutSelect();
+  selectMIDIOutput.onchange = selectMIDIOut;
 }
 
 function onMIDISystemError( err ) {
@@ -97,5 +153,4 @@ function onMIDISystemError( err ) {
 window.addEventListener('load', function() {   
   if (navigator.requestMIDIAccess)
     navigator.requestMIDIAccess().then( onMIDIStarted, onMIDISystemError );
-
 });

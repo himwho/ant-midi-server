@@ -80,11 +80,6 @@ function noteOn( note, velocity ) {
 	if (voices[note] == null) {
 		// Create a new synth node
 		voices[note] = new Voice(note, velocity);
-		//Ensure that the highlight on pressed key is added, regardless of selected octave
-                var e = document.getElementById( "k" + (note + 12*(currentOctave - 3)));
-
-                if (e)
-			e.classList.add("pressed");
 	}
 }
 
@@ -93,11 +88,6 @@ function noteOff( note ) {
 		// Shut off the note playing and clear it 
 		voices[note].noteOff();
 		voices[note] = null;
-                //Ensure that the highlight on pressed key is removed, regardless of selected octave
-                var e = document.getElementById( "k" + (note + 12*(currentOctave - 3)));
-
-                if (e)
-			e.classList.remove("pressed");
 	}
 
 }
