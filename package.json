@@ -8,10 +8,12 @@
     "start": "node main.js"
   },
   "dependencies": {
+    "body-parse": "^0.1.0",
     "express": "^4.16.1",
-    "jazz-midi": "^1.7.0",
-    "performance-now": "^2.1.0",
-    "web-midi-api": "^2.0.5",
-    "webmidi": "^2.3.3"
+    "osc-js": "^2.0.3",
+    "osc-min": "^1.1.1",
+    "osc4node": "^0.1.0",
+    "socket.io": "^2.2.0",
+    "webmidi": "^2.5.0"
   }
 }

@@ -1,61 +1,37 @@
+var app = require('express')();
+var http = require('http').createServer(app);
+var io = require('socket.io')(http);
+var osc = require('osc-min'),
+    dgram = require('dgram'),
+    remote_osc_ip;
 
-const express = require('express')
-const app = express();
+app.get('/', function(req, res){
+  res.sendFile(__dirname + '/index.html');
+});
+ 
+var udp_server = dgram.createSocket('udp4', function(msg, rinfo) {
 
-var jazz = require('jazz-midi');
-var midi = new jazz.MIDI();
+  var osc_message;
+  try {
+    osc_message = osc.fromBuffer(msg);
+    //console.log(osc_message);
+  } catch(err) {
+    return console.log('Could not decode OSC message');
+  }
 
-var out_name;
-var in_name;
-var current;
-var delta;
+  remote_osc_ip = rinfo.address; 
 
-app.get('/', (req, res) => {
-	res.send('Listening for midi...')
-	 
-	start_recording();
+  io.emit('osc', {
+    x: parseInt(osc_message.args[0].value) || 0,
+    y: parseInt(osc_message.args[1].value) || 0,
+    z: parseInt(osc_message.args[2].value) || 0
+  });
+
 });
 
-app.listen(8000, () => {
-  console.log('Listening on port 8000!')
+udp_server.bind(9998);
+console.log('Listening for OSC messages on port 9998');
+
+http.listen(3000, function(){
+  console.log('listening on *:3000');
 });
-
-function start_recording(){
-  out_name = midi.MidiOutOpen(0);
-  if(out_name==''){ console.log('No default MIDI-Out port!'); return;}
-  in_name = midi.MidiInOpen(0);
-  if(in_name==''){ console.log('No default MIDI-In port!'); return;}
-  console.log('Recording from', in_name, '...');
-  setTimeout(start_playing, 5000);
-}
-
-function start_playing(){
-  midi.MidiInClose();
-  console.log('Playing to', out_name, '...');
-  current = midi.QueryMidiIn();
-  if(!current){
-    cleanup();
-    return;
-  }
-  delta = midi.Time() - current[0];
-  next_msg();
-}
-
-function next_msg(){
-  if(!current){
-    setTimeout(cleanup, 1000);
-    return;
-  }
-  var wait = current[0] + delta - midi.Time();
-  if(wait<=0){
-    midi.MidiOutLong(current.slice(1, current.length));
-    current = midi.QueryMidiIn();
-    next_msg();
-  }
-  else setTimeout(next_msg, wait);
-}
-
-function cleanup(){
-  midi.MidiOutClose();
-  console.log('Hope you have enjoyed!');
-}
