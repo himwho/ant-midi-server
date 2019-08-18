@@ -1,4 +1,5 @@
-var app = require('express')();
+var express = require('express');
+var app = express();
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
 var osc = require('osc-min'),
@@ -8,6 +9,8 @@ var osc = require('osc-min'),
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
 });
+
+app.use('/public', express.static(__dirname + '/public'));
  
 var udp_server = dgram.createSocket('udp4', function(msg, rinfo) {
 
@@ -28,6 +31,8 @@ var udp_server = dgram.createSocket('udp4', function(msg, rinfo) {
   });
 
 });
+
+//LOADERS
 
 udp_server.bind(9998);
 console.log('Listening for OSC messages on port 9998');
