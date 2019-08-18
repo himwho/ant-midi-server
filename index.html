@@ -8,14 +8,15 @@
     <script type="text/javascript" src="public/js/midi.js"></script>
     <script type="text/javascript" src="public/js/synth.js"></script>
     <script type="text/javascript" src="public/js/ui.js"></script>
+  </head>
+  
   <body>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
-    <div id="synthbox"></div>
-    <div id="input-display">
-            <h3>Note: <span id="note"></span>, Velocity: <span id="velocity"></span></h3>
+    <div id="synthbox">
     </div>
 
+    <div id="input-display">
     <input type="number" id="x" value="0">
     <input type="number" id="y" value="0">
     <input type="number" id="z" value="0">

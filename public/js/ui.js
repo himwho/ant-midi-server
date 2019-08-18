@@ -5,45 +5,6 @@ function testChange(e) {
 	console.log("test");
 }
 
-function createKnob( id, label, width, x, y, min, max, currentValue, color, onChange, units, log ) {
-	var container = document.createElement( "div" );
-	container.className = "knobContainer";
-	container.style.left = "" + x + "px";
-	container.style.top = "" + y + "px";
-	var knob = document.createElement( "webaudio-knob" );
-	knob.id = id;
-	knob.setAttribute( "value", "" + currentValue );
-	knob.setAttribute( "src", "img/LittlePhatty.png" );
-	knob.setAttribute( "min", ""+min );
-	knob.setAttribute( "max", ""+max );
-	if (log)
-		knob.setAttribute( "log", true );
-	else
-		knob.setAttribute( "step", (max-min)/100 );
-	if (units)
-		knob.setAttribute("units", units);
-	knob.setAttribute( "diameter", "64" );
-	knob.setAttribute( "sprites", "100" );
-	knob.setAttribute( "tooltip", label );
-	knob.ready();
-	knob.onchange = onChange;
-//	knob.setValue( currentValue );
-
-	container.appendChild( knob );
-
-	var labelText = document.createElement( "div" );
-	labelText.className = "knobLabel";
-	labelText.style.top = "" + (width* 0.85) + "px";
-	labelText.style.width = "" + width + "px";
-	labelText.appendChild( document.createTextNode( label ) );
-
-	container.appendChild( labelText );
-
-//	$( knob ).knob({ 'change' : onChange });
-
-	return container;
-}
-
 function createDropdown( id, label, x, y, values, selectedIndex, onChange ) {
 	var container = document.createElement( "div" );
 	container.className = "dropdownContainer";
@@ -71,7 +32,7 @@ function createDropdown( id, label, x, y, values, selectedIndex, onChange ) {
 }
 
 function createSection( label, x, y, width, height ) {
-	var container = document.createElement( "fieldset" );
+	var container = document.createElement( "div" );
 	container.className = "section";
 	container.style.left = "" + x + "px";
 	container.style.top = "" + y + "px";
@@ -89,7 +50,7 @@ function createSection( label, x, y, width, height ) {
 function setupSynthUI() {
 	synthBox = document.getElementById("synthbox");
 
-	var midi = createSection( "MIDI", 501, 254, 355, 98 );	
+	var midi = createSection( "MIDI", 0, 0, 355, 98 );	
 	midi.appendChild( createDropdown( "midiIn", "MIDI Input", 280, 15, ["-no MIDI-"], 0, selectMIDIIn ) );
 	midi.appendChild( createDropdown( "midiOut", "MIDI Output", 280, 15, ["-no MIDI-"], 0, selectMIDIOut ) );
   synthBox.appendChild( midi );
