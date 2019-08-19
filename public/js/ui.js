@@ -10,6 +10,7 @@ function createDropdown( id, label, x, y, values, selectedIndex, onChange ) {
 	container.className = "dropdownContainer";
 	container.style.left = "" + x + "px";
 	container.style.top = "" + y + "px";
+  container.style.width = "100%";
 
 	var labelText = document.createElement( "div" );
 	labelText.className = "dropdownLabel";
@@ -36,11 +37,12 @@ function createSection( label, x, y, width, height ) {
 	container.className = "section";
 	container.style.left = "" + x + "px";
 	container.style.top = "" + y + "px";
-	container.style.width = "" + width + "px";
-	container.style.height = "" + height + "px";
+	container.style.width = "" + width + "%";
+	container.style.height = "" + height + "%";
 
 	var labelText = document.createElement( "legend" );
 	labelText.className = "sectionLabel";
+  labelText.style.marginTop = "10px";
 	labelText.appendChild( document.createTextNode( label ) );
 
 	container.appendChild( labelText );
@@ -50,8 +52,8 @@ function createSection( label, x, y, width, height ) {
 function setupSynthUI() {
 	synthBox = document.getElementById("synthbox");
 
-	var midi = createSection( "MIDI", 0, 0, 355, 98 );	
+	var midi = createSection( "MIDI OUTPUT", 0, 0, 100, 100 );	
 	//midi.appendChild( createDropdown( "midiIn", "MIDI Input", 280, 15, ["-no MIDI-"], 0, selectMIDIIn ) );
-	midi.appendChild( createDropdown( "midiOut", "MIDI Output", 280, 35, ["-no MIDI-"], 0, selectMIDIOut ) );
+	midi.appendChild( createDropdown( "midiOut", "", 0, 0, ["-no MIDI-"], 0, selectMIDIOut ) );
   synthBox.appendChild( midi );
 } 

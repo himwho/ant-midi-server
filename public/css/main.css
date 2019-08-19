@@ -1,7 +1,27 @@
 	body { background-color: #FFF; font: 12px 'Syncopate', sans-serif;}
-	#draw { height: 200px; }
     #synthbox { 
-        position:relative; background: #FFF; height:100px; width:355px; border: 3px solid blue; border-radius: 10px}
+        width: 20%; height: 20%; margin-left: auto; margin-right: auto; text-align: center; margin-bottom: 10px; position:relative; background: #FFF; border: 3px solid blue; border-radius: 10px}
     .loaded#synthbox { border-color: #AAA;}
     .error#synthbox { border-color: red;}
     select { width: 80px; }
+    .outputwindow{
+    	position:relative;
+		display: block;
+		margin-left: auto;
+		margin-right: auto;
+		width: 100%;
+  		border: 3px solid grey;
+  		padding: 10px;	
+  		height: 75vh;
+    	overflow-y: scroll;
+  		scroll-behavior: smooth;
+    	padding-top:10px;
+    }
+    .center-column{
+    	position:relative;
+		display: block;
+		margin-left: auto;
+		margin-right: auto;
+		width: 50%;
+		padding-bottom: 10px;
+    }

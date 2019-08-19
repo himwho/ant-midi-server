@@ -9,17 +9,25 @@
   <body>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
-    <div id="synthbox">
+
+    <div class="center-column">
+      <div id="synthbox"></div>
+      <div id="input-display" style="text-align:center; margin-bottom:10px;">
+      <input type="number" id="x" value="0">
+      <input type="number" id="y" value="0">
+      <input type="number" id="z" value="0">
     </div>
 
-    <div id="input-display">
-    <input type="number" id="x" value="0">
-    <input type="number" id="y" value="0">
-    <input type="number" id="z" value="0">
-
-    <h2>Output:</h2>
-
-    <pre id="output"></pre>
+    <h2 style="position:relative; text-align:center; padding-top:20px">OUTPUT</h2>
+    <div class="outputwindow">
+      <pre id="output"></pre>
+      <script>
+        window.setInterval(function() {
+          var elem = document.getElementById('output');
+          elem.scrollTop = elem.scrollHeight;
+        }, 500);
+      </script>
+    </div>
 
     <script>
       var socket = io.connect();
