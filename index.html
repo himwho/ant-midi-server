@@ -23,8 +23,8 @@
 
       <div class="main-content">
         <span class="outputwindow">
-          <h2 style="position:relative; text-align:center; padding-top:20px">OUTPUT</h2>
-          <pre id="output"></pre>
+          <h2 style="text-align:center; padding-top:10px">OUTPUT</h2>
+          <pre id="output" onmousemove="start_scroll_down();"></pre>
         </span>
       </div>
 
@@ -40,6 +40,15 @@
         var nonNumNote = notes[data.y-40];
         output.innerHTML = output.innerHTML + 'Note Type: ' + data.x + ' Pitch: ' + nonNumNote + ' Velocity: ' + data.z + '\n';
       });
+
+      function start_scroll_down() { 
+         scroll = setInterval(function(){ window.scrollBy(0, 1000); console.log('start');}, 1500);
+      }
+
+      function stop_scroll_down() {
+         clearInterval(scroll);
+         console.log('stop');
+      }
     </script>
     <script type="text/javascript" src="public/js/midi.js"></script>
     <script type="text/javascript" src="public/js/synth.js"></script>
