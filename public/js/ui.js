@@ -51,7 +51,7 @@ function setupSynthUI() {
 	synthBox = document.getElementById("synthbox");
 
 	var midi = createSection( "MIDI", 0, 0, 355, 98 );	
-	midi.appendChild( createDropdown( "midiIn", "MIDI Input", 280, 15, ["-no MIDI-"], 0, selectMIDIIn ) );
-	midi.appendChild( createDropdown( "midiOut", "MIDI Output", 280, 15, ["-no MIDI-"], 0, selectMIDIOut ) );
+	//midi.appendChild( createDropdown( "midiIn", "MIDI Input", 280, 15, ["-no MIDI-"], 0, selectMIDIIn ) );
+	midi.appendChild( createDropdown( "midiOut", "MIDI Output", 280, 35, ["-no MIDI-"], 0, selectMIDIOut ) );
   synthBox.appendChild( midi );
 } 
