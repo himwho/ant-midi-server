@@ -1,27 +1,19 @@
-	body { background-color: #FFF; font: 12px 'Syncopate', sans-serif;}
-    #synthbox { 
-        width: 20%; height: 20%; margin-left: auto; margin-right: auto; text-align: center; margin-bottom: 10px; position:relative; background: #FFF; border: 3px solid blue; border-radius: 10px}
-    .loaded#synthbox { border-color: #AAA;}
-    .error#synthbox { border-color: red;}
-    select { width: 80px; }
-    .outputwindow{
-    	position:relative;
-		display: block;
-		margin-left: auto;
-		margin-right: auto;
-		width: 100%;
-  		border: 3px solid grey;
-  		padding: 10px;	
-  		height: 75vh;
-    	overflow-y: scroll;
-  		scroll-behavior: smooth;
-    	padding-top:10px;
-    }
-    .center-column{
-    	position:relative;
-		display: block;
-		margin-left: auto;
-		margin-right: auto;
-		width: 50%;
-		padding-bottom: 10px;
-    }
+body { background-color: #FFF; font: 12px 'Syncopate', sans-serif; font-weight:bold;}
+.main-container{ max-width:40%; margin:0 auto; border:solid 10px black; padding:10px; margin-top:40px;}
+.main-container#output{ text-align:center; }
+.main-container#border{padding:10px;background:#aaa; border:dashed 5px #000;}
+.main-container#synthbox { margin-left: auto; margin-right: auto; text-align: center; border: 5px dashed blue;}
+.loaded#synthbox { border-color: #AAA;}
+.error#synthbox { border-color: red;}
+.main-header{
+  height:50px; background:#aaa; border-color:red;
+}
+.main-content{
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	padding-top:10px;
+	max-height: 60%;
+}
+.main-header{position:-webkit-sticky; position:sticky; top:0;}
+.output-window{height: 100px; overflow-y: scroll; scroll-behavior: smooth;}

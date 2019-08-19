@@ -6,13 +6,13 @@ function testChange(e) {
 }
 
 function createDropdown( id, label, x, y, values, selectedIndex, onChange ) {
-	var container = document.createElement( "div" );
+	var container = document.createElement( "span" );
 	container.className = "dropdownContainer";
 	container.style.left = "" + x + "px";
 	container.style.top = "" + y + "px";
   container.style.width = "100%";
 
-	var labelText = document.createElement( "div" );
+	var labelText = document.createElement( "span" );
 	labelText.className = "dropdownLabel";
 	labelText.appendChild( document.createTextNode( label ) );
 	container.appendChild( labelText );
@@ -33,7 +33,7 @@ function createDropdown( id, label, x, y, values, selectedIndex, onChange ) {
 }
 
 function createSection( label, x, y, width, height ) {
-	var container = document.createElement( "div" );
+	var container = document.createElement( "span" );
 	container.className = "section";
 	container.style.left = "" + x + "px";
 	container.style.top = "" + y + "px";
@@ -57,3 +57,15 @@ function setupSynthUI() {
 	midi.appendChild( createDropdown( "midiOut", "", 0, 0, ["-no MIDI-"], 0, selectMIDIOut ) );
   synthBox.appendChild( midi );
 } 
+
+var scrollDistancePerSecond = 50; // Scroll 50px every second.
+var scrollDistancePerAnimationFrame = Math.ceil(scrollDistancePerSecond  / 60); // Animate at 60 fps.
+var wrapper = document.getElementById('output');
+
+autoScroll(wrapper);
+function autoScroll(element){
+    if (element.scrollTop < element.scrollHeight)
+      window.requestAnimationFrame(autoScroll.bind(null,element));
+    element.scrollTop += scrollDistancePerAnimationFrame;
+}
+
