@@ -21,6 +21,10 @@ Server listens for messages via OSC and sends them to any connecting client via 
 ## Notes
 Moving OSC handling to arduino controller side may be an issue due to lack of multithreading already for parsing sensors
 
+usbmodem14601 = hab001 = Brown Camponotus P. Hab
+usbmodem1434301 = hab002 = Clear Camponotus P. Hab
+usbmodem = hab003 = Tan Camponotus P. Hab
+
 ## Ant Journal
 I originally chose ants for this thinking they would be easy to handle and grow into large numbers making them ideal for entropy and synthesizing perceived randomness. It turns out its very challenging to get a queen ant to properly pass the foundling stage and grow into a sustaining colony. Below will be some notes and issues I did not expect more specific to this project.
 
