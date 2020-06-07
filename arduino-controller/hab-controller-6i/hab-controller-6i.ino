@@ -1,10 +1,9 @@
+// ant formicarium sensor controller
+// 6 input (6i)
+// handles 6 sensors and transmits them via serial as osc
+// by dylan marcus
+// ©2020 by design.create.record.
 
-/*
-    Make an OSC bundle and send it over SLIP serial
-
-    OSCBundles allow OSCMessages to be grouped together to  preserve the order and completeness of related messages.
-    They also allow for timetags to be carried to represent the presentation time of the messages.
-*/
 #include <OSCBundle.h>
 #include <OSCBoards.h>
 #include <OSCTiming.h>
@@ -17,36 +16,52 @@ SLIPEncodedUSBSerial SLIPSerial( thisBoardsSerialUSB );
  SLIPEncodedSerial SLIPSerial(Serial1);
 #endif
 
+// Declarations
+static const unsigned ledPin = 13;
+static const int NUM_PINS = 6;
+static const uint8_t analog_pins[NUM_PINS] = {A0,A1,A2,A3,A4,A5};
+int sensorValue[NUM_PINS];
+int sensorMin[NUM_PINS];
+int sensorMax[NUM_PINS];
 
 void setup() {
   //begin SLIPSerial just like Serial
-    SLIPSerial.begin(9600);   // set this as high as you can reliably run on your platform
+    SLIPSerial.begin(115200);
 #if ARDUINO >= 100
     while(!Serial)
       ;   // Leonardo bug
 #endif
 
+  for (int i = 0; i < NUM_PINS; i++){
+    calibrateSensors(i);
+  }
 }
 
 void loop(){
-    //declare the bundle
-    OSCBundle bndl;
-    osctime_t timetag;
-    
-    //OSCBundle's add' returns the OSCMessage so the message's 'add' can be composed together
-    bndl.add("/analog/0").add((int32_t)adcRead(0, &timetag));
-    bndl.add("/analog/0/time").add(timetag);
-    
-    bndl.add("/analog/1").add((int32_t)adcRead(1, &timetag));
-    bndl.add("/analog/1/time").add(timetag);
-   
-    bndl.add("/digital/5").add((digitalRead(5)==HIGH)?"HIGH":"LOW");
+  for (int i = 0; i < NUM_PINS; i++){
+    //the message wants an OSC address as first argument
+    OSCMessage msg("/hab001/"+i);
+    msg.add((int32_t)analogRead(i));
 
-    SLIPSerial.beginPacket();
-    bndl.setTimetag(oscTime());
-        bndl.send(SLIPSerial); // send the bytes to the SLIP stream
+    SLIPSerial.beginPacket();  
+      msg.send(SLIPSerial); // send the bytes to the SLIP stream
     SLIPSerial.endPacket(); // mark the end of the OSC Packet
-    bndl.empty(); // empty the bundle to free room for a new one
+    msg.empty(); // free space occupied by message
+  }
+  delay(5);
+}
 
-    delay(100);
+void calibrateSensors(int pinNumber){
+    int currentMillis = millis();
+    while (millis() - currentMillis < 5000){
+        for (int i = 0; i < NUM_PINS; i++){
+            sensorValue[pinNumber] = analogRead(pinNumber);
+            if (sensorValue[pinNumber] > sensorMax[pinNumber]){
+                sensorMax[pinNumber] = sensorValue[pinNumber];
+            }
+            if (sensorValue[pinNumber] < sensorMin[pinNumber]){
+                sensorMin[pinNumber] = sensorValue[pinNumber];
+            }
+        }
+    }
 }
