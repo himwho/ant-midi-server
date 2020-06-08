@@ -40,7 +40,7 @@ void setup() {
 void loop(){
   for (int i = 0; i < NUM_PINS; i++){
     //the message wants an OSC address as first argument
-    OSCMessage msg("/hab001/"+i);
+    OSCMessage msg("/hab002/"+i);
     msg.add((int32_t)analogRead(i));
 
     SLIPSerial.beginPacket();  
