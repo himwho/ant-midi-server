@@ -1,6 +1,6 @@
 // ant formicarium sensor controller
-// 6 input (6i)
-// handles 6 sensors and transmits them via serial
+// 11 input (11i)
+// handles 11 sensors and transmits them via serial
 // by dylan marcus
 // ©2020 by design.create.record.
 

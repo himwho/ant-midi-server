@@ -1,20 +1,8 @@
 // ant formicarium sensor controller
 // 6 input (6i)
-// handles 6 sensors and transmits them via serial as osc
+// handles 6 sensors and transmits them via serial
 // by dylan marcus
 // ©2020 by design.create.record.
-
-#include <OSCBundle.h>
-#include <OSCBoards.h>
-#include <OSCTiming.h>
-
-#ifdef BOARD_HAS_USB_SERIAL
-#include <SLIPEncodedUSBSerial.h>
-SLIPEncodedUSBSerial SLIPSerial( thisBoardsSerialUSB );
-#else
-#include <SLIPEncodedSerial.h>
- SLIPEncodedSerial SLIPSerial(Serial);
-#endif
 
 // Declarations
 static const unsigned ledPin = 13;
@@ -26,29 +14,27 @@ int sensorMax[NUM_PINS];
 
 void setup() {
   //begin SLIPSerial just like Serial
-    SLIPSerial.begin(115200);
-#if ARDUINO >= 100
-    while(!Serial)
-      ;   // Leonardo bug
-#endif
+  Serial.begin(115200);
 
   for (int i = 0; i < NUM_PINS; i++){
-    calibrateSensors(i);
+    //calibrateSensors(i);
   }
 }
 
 void loop(){
-  for (int i = 0; i < NUM_PINS; i++){
-    //the message wants an OSC address as first argument
-    OSCMessage msg("/hab001/"+i);
-    msg.add((int32_t)analogRead(i));
-
-    SLIPSerial.beginPacket();  
-      msg.send(SLIPSerial); // send the bytes to the SLIP stream
-    SLIPSerial.endPacket(); // mark the end of the OSC Packet
-    msg.empty(); // free space occupied by message
-  }
-  delay(5);
+  Serial.print(analogRead(analog_pins[0]));
+  Serial.print(" ");
+  Serial.print(analogRead(analog_pins[1]));
+  Serial.print(" ");
+  Serial.print(analogRead(analog_pins[2]));
+  Serial.print(" ");
+  Serial.print(analogRead(analog_pins[3]));
+  Serial.print(" ");
+  Serial.print(analogRead(analog_pins[4]));
+  Serial.print(" ");
+  Serial.print(analogRead(analog_pins[5]));
+  Serial.println(" ");
+  delay(1);
 }
 
 void calibrateSensors(int pinNumber){
