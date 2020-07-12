@@ -33,6 +33,11 @@ void ofApp::setup(){
     } else {
         ofLogNotice("ofApp::setup") << "No devices connected.";
     }
+    
+    // open an outgoing connection to HOST:PORT
+    sender.setup(HOST, PORT);
+    ofLogNotice("ofApp::setup") << "OSC Host: " << HOST;
+    ofLogNotice("ofApp::setup") << "OSC Port: " << PORT;
 }
 
 //--------------------------------------------------------------
@@ -40,24 +45,34 @@ void ofApp::update(){
     // The serial device can throw exeptions.
     try {
         // Read all bytes from the devices;
-        uint8_t buffer[1024];
-
         // TODO: Change this to check all available devices
         if (devices.size() > 0) {
             while (devices[0].available() > 0) { // While at least the first device is available
                 for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {
+                    uint8_t buffer[1024];
+                    std::stringstream ss;
+                    std::string target;
                     std::size_t sz = devices[j].readBytes(buffer, 1024);
 
+                    std::cout << "Device[" << j << "]: ";
                     for (std::size_t i = 0; i < sz; ++i) {
-                        std::cout << "Device[" << j << "]: " << buffer[i];
+                        std::cout << buffer[i];
+                        ss << buffer[i];
+                        ss >> target;
                     }
                     
                     // Send some new bytes to the device to have them echo'd back.
                     // TODO: Use this to ensure handshake comms
-                    std::string text = "Frame Number: " + ofToString(ofGetFrameNum());
+                    std::string text = ofToString(ofGetFrameNum());
                     ofx::IO::ByteBuffer textBuffer(text);
                     devices[j].writeBytes(textBuffer);
                     devices[j].writeByte('\n');
+                    
+                    // Send received byte via OSC to server
+                    ofxOscMessage m;
+                    m.setAddress("/device" + to_string(j));
+                    m.addStringArg(target);
+                    sender.sendMessage(m, false);
                 }
             }
         }

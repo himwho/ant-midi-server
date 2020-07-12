@@ -2,6 +2,13 @@
 
 #include "ofMain.h"
 #include "ofxSerial.h"
+#include "ofxOsc.h"
+
+// send host (aka ip address)
+#define HOST "localhost"
+
+/// send port
+#define PORT 12345
 
 class ofApp : public ofBaseApp{
 
@@ -22,6 +29,10 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 		
+        // SERIAL SETUP
         std::vector<ofx::IO::SerialDevice> devices;
         int numberOfConnectedDevices = 0;
+    
+        // OSC SETUP
+        ofxOscSender sender;
 };
