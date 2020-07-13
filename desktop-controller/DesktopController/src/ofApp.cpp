@@ -17,16 +17,20 @@ void ofApp::setup(){
                 std::cout << "Port Position: " << i << " contains ants!" << '\n';
                 numberOfConnectedDevices++; // Add to count of discovered habs
                 devices.resize(numberOfConnectedDevices); // Resize devices for number of discovered habs
-                for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {
-                    bool success = devices[j].setup(devicesInfo[i], 115200);
-                    if (success) {
-                        ofLogNotice("ofApp::setup") << "Successfully setup " << devicesInfo[i];
-                    } else {
-                        ofLogNotice("ofApp::setup") << "Unable to setup " << devicesInfo[i];
-                    }
-                }
+                foundDevicesArray.push_back(i);
             } else {
                 std::cout << "Port Position: " << i << " probably has no ants." << '\n';
+            }
+        }
+        for (std::vector<int>::const_iterator i = foundDevicesArray.begin(); i != foundDevicesArray.end(); ++i){
+            std::cout << *i << ' ';
+        }
+        for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {
+            bool success = devices[j].setup(devicesInfo[foundDevicesArray[j]], 115200);
+            if (success) {
+                ofLogNotice("ofApp::setup") << "Successfully setup " << devicesInfo[foundDevicesArray[j]];
+            } else {
+                ofLogNotice("ofApp::setup") << "Unable to setup " << devicesInfo[foundDevicesArray[j]];
             }
         }
         ofLogNotice("Number of Discovered Devices: ") << numberOfConnectedDevices << " Number Setup: " << devices.size();
@@ -53,14 +57,18 @@ void ofApp::update(){
                     std::stringstream ss;
                     std::string target;
                     std::size_t sz = devices[j].readBytes(buffer, 1024);
-
-                    std::cout << "Device[" << j << "]: ";
+                    
                     for (std::size_t i = 0; i < sz; ++i) {
-                        std::cout << buffer[i];
+                        //std::cout << buffer[i];
                         ss << buffer[i];
                         ss >> target;
                     }
                     
+                    char str[(sizeof buffer) + 1];
+                    memcpy(str, buffer, sizeof buffer);
+                    str[sizeof buffer] = 0; // Null termination.
+                    printf("%s\n", str);
+
                     // Send some new bytes to the device to have them echo'd back.
                     // TODO: Use this to ensure handshake comms
                     std::string text = ofToString(ofGetFrameNum());
@@ -85,7 +93,10 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
     for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {
-        ofDrawBitmapStringHighlight("Connected to " + devices[j].port(), 20, 20);
+        ofDrawBitmapStringHighlight("Ants found on port:  " + devices[j].port(), 20, (j * 20) + 20);
+        
+        std::stringstream ss;
+        ss << "FPS: " << ofGetFrameRate() << std::endl;
     }
 }
 

@@ -11,6 +11,7 @@ static const uint8_t analog_pins[NUM_PINS] = {A0,A1,A2,A3,A4,A5};
 int sensorValue[NUM_PINS];
 int sensorMin[NUM_PINS];
 int sensorMax[NUM_PINS];
+int incomingByte = 0;
 
 void setup() {
   //begin SLIPSerial just like Serial
@@ -22,19 +23,25 @@ void setup() {
 }
 
 void loop(){
-  Serial.print(analogRead(analog_pins[0]));
-  Serial.print(" ");
-  Serial.print(analogRead(analog_pins[1]));
-  Serial.print(" ");
-  Serial.print(analogRead(analog_pins[2]));
-  Serial.print(" ");
-  Serial.print(analogRead(analog_pins[3]));
-  Serial.print(" ");
-  Serial.print(analogRead(analog_pins[4]));
-  Serial.print(" ");
-  Serial.print(analogRead(analog_pins[5]));
-  Serial.println(" ");
-  delay(1);
+  // reply only when you receive data:
+  if (Serial.available() > 0) {
+    // read the incoming byte:
+    incomingByte = Serial.read();
+
+    Serial.write(analogRead(analog_pins[0]));
+    Serial.write(",");
+    Serial.write(analogRead(analog_pins[1]));
+    Serial.write(",");
+    Serial.write(analogRead(analog_pins[2]));
+    Serial.write(",");
+    Serial.write(analogRead(analog_pins[3]));
+    Serial.write(",");
+    Serial.write(analogRead(analog_pins[4]));
+    Serial.write(",");
+    Serial.write(analogRead(analog_pins[5]));
+    Serial.write("\r\n");
+    delay(1);
+  }
 }
 
 void calibrateSensors(int pinNumber){

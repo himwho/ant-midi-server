@@ -39,17 +39,6 @@
 		"subpatcher_template" : "",
 		"boxes" : [ 			{
 				"box" : 				{
-					"id" : "obj-3",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 475.0, 666.0, 32.0, 22.0 ],
-					"text" : "print"
-				}
-
-			}
-, 			{
-				"box" : 				{
 					"id" : "obj-37",
 					"maxclass" : "newobj",
 					"numinlets" : 11,
@@ -848,7 +837,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 372.0, 825.933350000000019, 165.0, 22.0 ],
-					"text" : "udpsend 192.168.1.210 7000"
+					"text" : "udpsend 192.168.1.209 7000"
 				}
 
 			}
@@ -1156,18 +1145,6 @@
 					}
 ,
 					"text" : "patcher"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-6",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 3,
-					"outlettype" : [ "", "", "OSCTimeTag" ],
-					"patching_rect" : [ 372.0, 793.0, 111.0, 22.0 ],
-					"text" : "OpenSoundControl"
 				}
 
 			}
@@ -2068,7 +2045,7 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-6", 0 ],
+					"destination" : [ "obj-16", 0 ],
 					"source" : [ "obj-11", 0 ]
 				}
 
@@ -2273,7 +2250,7 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-6", 0 ],
+					"destination" : [ "obj-16", 0 ],
 					"source" : [ "obj-34", 0 ]
 				}
 
@@ -2287,7 +2264,7 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-6", 0 ],
+					"destination" : [ "obj-16", 0 ],
 					"source" : [ "obj-37", 0 ]
 				}
 
@@ -2324,13 +2301,6 @@
 				"patchline" : 				{
 					"destination" : [ "obj-13", 0 ],
 					"source" : [ "obj-43", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-16", 0 ],
-					"source" : [ "obj-6", 0 ]
 				}
 
 			}
@@ -2548,10 +2518,6 @@
 			}
 , 			{
 				"name" : "o.route.mxo",
-				"type" : "iLaX"
-			}
-, 			{
-				"name" : "OpenSoundControl.mxo",
 				"type" : "iLaX"
 			}
  ],

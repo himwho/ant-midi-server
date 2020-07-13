@@ -32,6 +32,7 @@ class ofApp : public ofBaseApp{
         // SERIAL SETUP
         std::vector<ofx::IO::SerialDevice> devices;
         int numberOfConnectedDevices = 0;
+        std::vector<int> foundDevicesArray;
     
         // OSC SETUP
         ofxOscSender sender;
