@@ -23,9 +23,6 @@ void ofApp::setup(){
                 std::cout << "Port Position: " << i << " probably has no ants." << '\n';
             }
         }
-        for (std::vector<int>::const_iterator i = foundDevicesArray.begin(); i != foundDevicesArray.end(); ++i){
-            std::cout << *i << ' ';
-        }
         for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {
             bool success = devices[j].setup(devicesInfo[foundDevicesArray[j]], 115200);
             if (success) {
@@ -35,6 +32,10 @@ void ofApp::setup(){
             }
         }
         ofLogNotice("Number of Discovered Devices: ") << numberOfConnectedDevices << " Number Setup: " << devices.size();
+        for (std::vector<int>::const_iterator i = foundDevicesArray.begin(); i != foundDevicesArray.end(); ++i){
+            std::cout << *i << ' ';
+        }
+        std::cout << "< Array of Devices" << std::endl;
     } else {
         ofLogNotice("ofApp::setup") << "No devices connected.";
     }
@@ -52,34 +53,28 @@ void ofApp::update(){
         // Read all bytes from the devices;
         // TODO: Change this to check all available devices
         if (devices.size() > 0) {
-            while (devices[0].available() > 0) { // While at least the first device is available
-                for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {
-                    uint8_t buffer[1024];
-                    std::size_t sz = devices[j].readBytes(buffer, 1024);
-                    
-                    for (std::size_t i = 0; i < sz; ++i) {
-                        //std::cout << buffer[i];
-                        ss[j] << buffer[i];
-                        ss[j] >> receivedData[j];
-                    }
-                    
-                    char str[(sizeof buffer) + 1];
-                    memcpy(str, buffer, sizeof buffer);
-                    str[sizeof buffer] = 0; // Null termination.
-                    printf("%s\n", str);
-
-                    // Send some new bytes to the device to have them echo'd back.
-                    std::string text = ofToString(ofGetFrameNum());
-                    ofx::IO::ByteBuffer textBuffer(text);
-                    devices[j].writeBytes(textBuffer);
-                    devices[j].writeByte('\n');
-                    
-                    // Send received byte via OSC to server
-                    ofxOscMessage m;
-                    m.setAddress("/device" + to_string(j));
-                    m.addStringArg(receivedData[j]);
-                    sender.sendMessage(m, false);
+            for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {
+                uint8_t buffer[1024];
+                std::size_t sz = devices[j].readBytes(buffer, 1024);
+                
+                for (std::size_t i = 0; i < sz; ++i) {
+                    std::cout << buffer[i];
+                    ss[j] << buffer[i];
+                    ss[j] >> receivedData[j];
                 }
+                std::cout << "Device [" << j << "]: " << receivedData[j];
+
+                // Send some new bytes to the device to have them echo'd back.
+                std::string text = ofToString("a");
+                ofx::IO::ByteBuffer textBuffer(text);
+                devices[j].writeBytes(textBuffer);
+                devices[j].writeByte('\n');
+                
+                // Send received byte via OSC to server
+                ofxOscMessage m;
+                m.setAddress("/device" + to_string(j));
+                m.addStringArg(receivedData[j]);
+                sender.sendMessage(m, false);
             }
         }
         
