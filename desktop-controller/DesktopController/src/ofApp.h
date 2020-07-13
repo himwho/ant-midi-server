@@ -33,6 +33,8 @@ class ofApp : public ofBaseApp{
         std::vector<ofx::IO::SerialDevice> devices;
         int numberOfConnectedDevices = 0;
         std::vector<int> foundDevicesArray;
+        std::vector<std::stringstream> ss;
+        std::vector<std::string> receivedData;
     
         // OSC SETUP
         ofxOscSender sender;

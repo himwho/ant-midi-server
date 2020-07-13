@@ -18,6 +18,7 @@ void ofApp::setup(){
                 numberOfConnectedDevices++; // Add to count of discovered habs
                 devices.resize(numberOfConnectedDevices); // Resize devices for number of discovered habs
                 foundDevicesArray.push_back(i);
+                receivedData.resize(numberOfConnectedDevices);
             } else {
                 std::cout << "Port Position: " << i << " probably has no ants." << '\n';
             }
@@ -54,14 +55,12 @@ void ofApp::update(){
             while (devices[0].available() > 0) { // While at least the first device is available
                 for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {
                     uint8_t buffer[1024];
-                    std::stringstream ss;
-                    std::string target;
                     std::size_t sz = devices[j].readBytes(buffer, 1024);
                     
                     for (std::size_t i = 0; i < sz; ++i) {
                         //std::cout << buffer[i];
-                        ss << buffer[i];
-                        ss >> target;
+                        ss[j] << buffer[i];
+                        ss[j] >> receivedData[j];
                     }
                     
                     char str[(sizeof buffer) + 1];
@@ -70,7 +69,6 @@ void ofApp::update(){
                     printf("%s\n", str);
 
                     // Send some new bytes to the device to have them echo'd back.
-                    // TODO: Use this to ensure handshake comms
                     std::string text = ofToString(ofGetFrameNum());
                     ofx::IO::ByteBuffer textBuffer(text);
                     devices[j].writeBytes(textBuffer);
@@ -79,7 +77,7 @@ void ofApp::update(){
                     // Send received byte via OSC to server
                     ofxOscMessage m;
                     m.setAddress("/device" + to_string(j));
-                    m.addStringArg(target);
+                    m.addStringArg(receivedData[j]);
                     sender.sendMessage(m, false);
                 }
             }
@@ -94,10 +92,10 @@ void ofApp::update(){
 void ofApp::draw(){
     for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {
         ofDrawBitmapStringHighlight("Ants found on port:  " + devices[j].port(), 20, (j * 20) + 20);
-        
-        std::stringstream ss;
-        ss << "FPS: " << ofGetFrameRate() << std::endl;
+        ofDrawBitmapStringHighlight(receivedData[j], 20, (j * 20) + 100);
     }
+    ofDrawBitmapStringHighlight("FPS: " + std::to_string(ofGetFrameRate()), ofGetWidth() - 250, 20);
+    ofDrawBitmapStringHighlight("Frame Number: " + std::to_string(ofGetFrameNum()), ofGetWidth() - 250, 40);
 }
 
 //--------------------------------------------------------------
