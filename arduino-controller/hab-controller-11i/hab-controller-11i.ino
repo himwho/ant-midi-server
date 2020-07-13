@@ -27,33 +27,29 @@ void loop(){
   if (Serial.available()) {
     int inByte = Serial.read();
     Serial1.print(inByte, DEC);
-  }
-  // read from port 1, send to port 0:
-  if (Serial1.available()) {
-    int inByte = Serial1.read();
   
-    Serial.write(analogRead(analog_pins[0]));
-    Serial.write(",");
-    Serial.write(analogRead(analog_pins[1]));
-    Serial.write(",");
-    Serial.write(analogRead(analog_pins[2]));
-    Serial.write(",");
-    Serial.write(analogRead(analog_pins[3]));
-    Serial.write(",");
-    Serial.write(analogRead(analog_pins[4]));
-    Serial.write(",");
-    Serial.write(analogRead(analog_pins[5]));
-    Serial.write(",");
-    Serial.write(analogRead(analog_pins[6]));
-    Serial.write(",");
-    Serial.write(analogRead(analog_pins[7]));
-    Serial.write(",");
-    Serial.write(analogRead(analog_pins[8]));
-    Serial.write(",");
-    Serial.write(analogRead(analog_pins[9]));
-    Serial.write(",");
-    Serial.write(analogRead(analog_pins[10]));
-    Serial.write("\r\n");
+    Serial.print(analogRead(analog_pins[0]));
+    Serial.print(",");
+    Serial.print(analogRead(analog_pins[1]));
+    Serial.print(",");
+    Serial.print(analogRead(analog_pins[2]));
+    Serial.print(",");
+    Serial.print(analogRead(analog_pins[3]));
+    Serial.print(",");
+    Serial.print(analogRead(analog_pins[4]));
+    Serial.print(",");
+    Serial.print(analogRead(analog_pins[5]));
+    Serial.print(",");
+    Serial.print(analogRead(analog_pins[6]));
+    Serial.print(",");
+    Serial.print(analogRead(analog_pins[7]));
+    Serial.print(",");
+    Serial.print(analogRead(analog_pins[8]));
+    Serial.print(",");
+    Serial.print(analogRead(analog_pins[9]));
+    Serial.print(",");
+    Serial.print(analogRead(analog_pins[10]));
+    Serial.print("\n");
     delay(1);
   }
 }

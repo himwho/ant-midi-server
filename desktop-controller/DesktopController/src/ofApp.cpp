@@ -1,5 +1,8 @@
 #include "ofApp.h"
 #include <vector>
+#include <string>
+#include <iostream>
+#include <ostream>
 
 //--------------------------------------------------------------
 void ofApp::setup(){
@@ -54,20 +57,16 @@ void ofApp::update(){
         // TODO: Change this to check all available devices
         if (devices.size() > 0) {
             for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {
-                uint8_t buffer[1024];
-                std::size_t sz = devices[j].readBytes(buffer, 1024);
+                std::vector<uint8_t> buffer;
+                buffer = devices[j].readBytesUntil();
                 
-                for (std::size_t i = 0; i < sz; ++i) {
-                    std::cout << buffer[i];
-                    ss[j] << buffer[i];
-                    ss[j] >> receivedData[j];
-                }
-                std::cout << "Device [" << j << "]: " << receivedData[j];
+                std::string str(buffer.begin(), buffer.end());
+                //std::string str ( buffer, buffer + buffer.size() / buffer[0].size() );
+                std::cout << "Device [" << j << "]: " << str << std::endl;
+                receivedData[j] = str;
 
-                // Send some new bytes to the device to have them echo'd back.
-                std::string text = ofToString("a");
-                ofx::IO::ByteBuffer textBuffer(text);
-                devices[j].writeBytes(textBuffer);
+                // Send next message of current frame
+                devices[j].writeByte((unsigned char)ofGetFrameNum());
                 devices[j].writeByte('\n');
                 
                 // Send received byte via OSC to server
