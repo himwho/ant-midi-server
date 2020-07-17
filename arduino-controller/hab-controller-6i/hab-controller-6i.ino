@@ -29,15 +29,15 @@ void loop(){
     incomingByte = Serial.read();
 
     Serial.print(analogRead(analog_pins[0]));
-    Serial.print(",");
+    Serial.print(" ");
     Serial.print(analogRead(analog_pins[1]));
-    Serial.print(",");
+    Serial.print(" ");
     Serial.print(analogRead(analog_pins[2]));
-    Serial.print(",");
+    Serial.print(" ");
     Serial.print(analogRead(analog_pins[3]));
-    Serial.print(",");
+    Serial.print(" ");
     Serial.print(analogRead(analog_pins[4]));
-    Serial.print(",");
+    Serial.print(" ");
     Serial.print(analogRead(analog_pins[5]));
     Serial.print("\n");
     delay(1);

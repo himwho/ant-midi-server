@@ -32,10 +32,25 @@ class ofApp : public ofBaseApp{
         // SERIAL SETUP
         std::vector<ofx::IO::SerialDevice> devices;
         int numberOfConnectedDevices = 0;
-        std::vector<int> foundDevicesArray;
-        std::vector<std::stringstream> ss;
         std::vector<std::string> receivedData;
+        std::vector<int> foundDevicesArray;
+
+        // DEVICE STRUCT
+        struct AntDevice {
+            int numberOfSensors;
+            std::vector<int> deviceValues;
+            std::vector<int> lastDeviceValues;
+            std::vector<int> deviceValuesMin;
+            std::vector<int> deviceValuesMax;
+            std::vector<int> adjustedDeviceValues;
+        };
+        AntDevice deviceData[0];
     
+        float updateDeviceValue(float value); //TODO: buffers lastValue
+        float updateVelocityValue(float value, float lastValue);
+        float updatePitchValue(float value, float lastValue);
+        void outputDeviceValueOSC(float deltaValue, float deltaValueSigned);
+        
         // OSC SETUP
         ofxOscSender sender;
 };

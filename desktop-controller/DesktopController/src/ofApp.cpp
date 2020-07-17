@@ -3,6 +3,7 @@
 #include <string>
 #include <iostream>
 #include <ostream>
+#include <sstream>
 
 //--------------------------------------------------------------
 void ofApp::setup(){
@@ -21,6 +22,8 @@ void ofApp::setup(){
                 numberOfConnectedDevices++; // Add to count of discovered habs
                 devices.resize(numberOfConnectedDevices); // Resize devices for number of discovered habs
                 foundDevicesArray.push_back(i);
+                // create 'n' number of device structs
+                deviceData[numberOfConnectedDevices];
                 receivedData.resize(numberOfConnectedDevices);
             } else {
                 std::cout << "Port Position: " << i << " probably has no ants." << '\n';
@@ -61,9 +64,11 @@ void ofApp::update(){
                 buffer = devices[j].readBytesUntil();
                 
                 std::string str(buffer.begin(), buffer.end());
-                //std::string str ( buffer, buffer + buffer.size() / buffer[0].size() );
                 std::cout << "Device [" << j << "]: " << str << std::endl;
                 receivedData[j] = str;
+                
+//                // Count elements in received string and set vector size
+//                deviceData[j].numberOfSensors = std::count(receivedData[j].begin(), receivedData[j].end(), " ");
 
                 // Send next message of current frame
                 devices[j].writeByte((unsigned char)ofGetFrameNum());
@@ -82,14 +87,31 @@ void ofApp::update(){
     }
 }
 
+float ofApp::updateDeviceValue(float value){
+    
+}
+
+float ofApp::updateVelocityValue(float value, float lastValue){
+    return abs(value - lastValue);
+}
+
+float ofApp::updatePitchValue(float value, float lastValue){
+    return value - lastValue;
+}
+
+void ofApp::outputDeviceValueOSC(float deltaValue, float deltaValueSigned){
+    
+}
+
 //--------------------------------------------------------------
 void ofApp::draw(){
     for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {
         ofDrawBitmapStringHighlight("Ants found on port:  " + devices[j].port(), 20, (j * 20) + 20);
-        ofDrawBitmapStringHighlight(receivedData[j], 20, (j * 20) + 100);
+        ofDrawBitmapString(receivedData[j], 20, (j * 20) + 100);
+        //ofDrawBitmapStringHighlight("Number of senors: " + std::to_string(deviceData[j].numberOfSensors), 20, (j * 20) + 120);
     }
-    ofDrawBitmapStringHighlight("FPS: " + std::to_string(ofGetFrameRate()), ofGetWidth() - 250, 20);
-    ofDrawBitmapStringHighlight("Frame Number: " + std::to_string(ofGetFrameNum()), ofGetWidth() - 250, 40);
+    ofDrawBitmapStringHighlight("FPS: " + std::to_string(ofGetFrameRate()), 20, ofGetHeight() - 20);
+    ofDrawBitmapStringHighlight("Frame Number: " + std::to_string(ofGetFrameNum()), 20, ofGetHeight() - 40);
 }
 
 //--------------------------------------------------------------
