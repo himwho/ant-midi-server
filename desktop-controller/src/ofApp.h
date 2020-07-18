@@ -46,10 +46,11 @@ class ofApp : public ofBaseApp{
         };
         AntDevice deviceData[0];
     
-        float updateDeviceValue(float value); //TODO: buffers lastValue
-        float updateVelocityValue(float value, float lastValue);
-        float updatePitchValue(float value, float lastValue);
-        void outputDeviceValueOSC(float deltaValue, float deltaValueSigned);
+        float updateDeviceValue(std::vector<int> value);
+        float updateVelocityValue(std::vector<int> value, std::vector<int> lastValue);
+        float updatePitchValue(std::vector<int> value, std::vector<int> lastValue);
+        void outputDeviceValueOSC(std::vector<int> deltaValue, std::vector<int> deltaValueSigned);
+        std::vector<int> convertStrtoArr(string str);
         
         // OSC SETUP
         ofxOscSender sender;
