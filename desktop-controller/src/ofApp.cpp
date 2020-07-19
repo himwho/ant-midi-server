@@ -39,7 +39,7 @@ void ofApp::setup(){
             std::cout << *i << ' ';
         }
         // create 'n' number of device structs
-        deviceData[numberOfConnectedDevices];
+        deviceData.resize(numberOfConnectedDevices);
         receivedData.resize(numberOfConnectedDevices);
         std::cout << "< Array of Devices" << std::endl;
     } else {
@@ -56,37 +56,31 @@ void ofApp::setup(){
 void ofApp::update(){
     // The serial device can throw exeptions.
     try {
-        // Read all bytes from the devices;
         // TODO: Change this to check all available devices
         if (devices.size() > 0) {
             for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {
-                // Send next message of current frame
-                devices[j].writeByte((unsigned char)ofGetFrameNum());
-                devices[j].writeByte('\n');
-                
-                std::vector<uint8_t> buffer;
-                buffer = devices[j].readBytesUntil();
-                
-                std::string str(buffer.begin(), buffer.end());
-                std::cout << "Device [" << j << "]: " << str << std::endl;
-                receivedData[j] = str;
-                
-                // Convert string and set array of values
-                deviceData[j].deviceValues = convertStrtoArr(receivedData[j]);
-                deviceData[j].numberOfSensors = deviceData[j].deviceValues.size();
-                
-                updateDeviceValue(deviceData[j].deviceValues);
-                updateVelocityValue(deviceData[j].deviceValues, deviceData[j].lastDeviceValues);
-                updatePitchValue(deviceData[j].deviceValues, deviceData[j].lastDeviceValues);
-
-                // Send received byte via OSC to server
-                ofxOscMessage m;
-                m.setAddress("/device" + to_string(j));
-                m.addStringArg(receivedData[j]);
-                sender.sendMessage(m, false);
+                while (devices[j].available() > 0){
+                    // Read all bytes from the devices;
+                    std::vector<uint8_t> buffer;
+                    buffer = devices[j].readBytesUntil(); //TODO: find out device range and size for buffer properly
+                    std::string str(buffer.begin(), buffer.end());
+                    std::cout << "Device [" << j << "]: " << str << std::endl;
+                    receivedData[j] = str;
+                    
+                    // Convert string and set array of values
+                    std::vector<int> tempVector = convertStrtoVec(receivedData[j]);
+                    deviceData[j].deviceValues = tempVector;
+                    deviceData[j].numberOfSensors = deviceData[j].deviceValues.size();
+                    
+                    deviceData[j].deltaValues = updateDeltaValue(deviceData[j].deviceValues, deviceData[j].lastDeviceValues);
+                }
                 
                 // Set next lastDeviceValue
                 deviceData[j].lastDeviceValues = deviceData[j].deviceValues;
+                
+                // Send next message of current frame
+                devices[j].writeByte((unsigned char)ofGetFrameNum());
+                devices[j].writeByte('\n');
             }
         }
         
@@ -95,58 +89,42 @@ void ofApp::update(){
     }
 }
 
-float ofApp::updateDeviceValue(std::vector<int> value){
-    
-}
-
-float ofApp::updateVelocityValue(std::vector<int> value, std::vector<int> lastValue){
-    //return abs(value - lastValue);
-}
-
-float ofApp::updatePitchValue(std::vector<int> value, std::vector<int> lastValue){
-    //return value - lastValue;
-}
-
-void ofApp::outputDeviceValueOSC(std::vector<int> deltaValue, std::vector<int> deltaValueSigned){
-    
-}
-
-std::vector<int> ofApp::convertStrtoArr(string str){
-    int str_length = str.length();
-  
-    // create an array with size as string
-    // length and initialize with 0
-    int arr[str_length] = { 0 };
-  
-    int j = 0, i, sum = 0;
-  
-    // Traverse the string
-    for (i = 0; str[i] != '\0'; i++) {
-  
-        // if str[i] is ', ' then split
-        if (str[i] == ',')
-            continue;
-         if (str[i] == ' '){
-            // Increment j to point to next
-            // array location
-            j++;
-        } else {
-            // subtract str[i] by 48 to convert it to int
-            // Generate number by multiplying 10 and adding
-            // (int)(str[i])
-            arr[j] = arr[j] * 10 + (str[i] - 48);
+std::vector<int> ofApp::updateDeltaValue(std::vector<int> value, std::vector<int> lastValue){
+    std::vector<int> delta;
+    // Check that the size of vectors match otherwise skip this for safety
+    if (value.size() == lastValue.size()){
+        delta.resize(value.size());
+        for (std::size_t j = 0; j < value.size(); j++) {
+            delta.push_back();
+            delta[j] = value[j] - lastValue[j];
         }
+    } else {
+        ofLogError("Update Delta: ") << "Mismatched sizes.";
     }
-  
-    for (i = 0; i <= j; i++) {
-        cout << arr[i] << " ";
-    }
+    return delta;
+}
+
+void ofApp::outputDeviceValueOSC(int deviceID, std::vector<int> deltaValues, std::vector<int> deviceValuesMin, std::vector<int> deviceValuesMax){
+    // pitch = Delta
+    // velocity = abs(Delta) mapped 0->127
     
-    std::vector<int> dest(std::begin(arr), std::end(arr));
-    for (int i: dest) {
-        std::cout << i << " ";
+    // Send received byte via OSC to server
+    ofxOscMessage m;
+    m.setAddress("/device" + to_string(deviceID));
+    m.addStringArg("");
+    sender.sendMessage(m, false);
+}
+
+std::vector<int> ofApp::convertStrtoVec(string str){
+    std::stringstream ss(str);
+    std::vector<int> vector;
+
+    int tmp;
+    while(ss >> tmp)
+    {
+        vector.push_back(tmp);
     }
-    return dest;
+    return vector;
 }
 
 //--------------------------------------------------------------

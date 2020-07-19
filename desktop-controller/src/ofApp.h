@@ -42,15 +42,14 @@ class ofApp : public ofBaseApp{
             std::vector<int> lastDeviceValues;
             std::vector<int> deviceValuesMin;
             std::vector<int> deviceValuesMax;
-            std::vector<int> adjustedDeviceValues;
+            std::vector<int> deltaValues;
         };
-        AntDevice deviceData[0];
     
-        float updateDeviceValue(std::vector<int> value);
-        float updateVelocityValue(std::vector<int> value, std::vector<int> lastValue);
-        float updatePitchValue(std::vector<int> value, std::vector<int> lastValue);
-        void outputDeviceValueOSC(std::vector<int> deltaValue, std::vector<int> deltaValueSigned);
-        std::vector<int> convertStrtoArr(string str);
+        std::vector<AntDevice> deviceData;
+
+        std::vector<int> updateDeltaValue(std::vector<int> value, std::vector<int> lastValue);
+        void outputDeviceValueOSC(int deviceID, std::vector<int> deltaValues, std::vector<int> deviceValuesMin, std::vector<int> deviceValuesMax);
+        std::vector<int> convertStrtoVec(string str);
         
         // OSC SETUP
         ofxOscSender sender;
