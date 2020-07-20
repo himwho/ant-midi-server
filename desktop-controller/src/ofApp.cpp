@@ -72,7 +72,10 @@ void ofApp::update(){
                     deviceData[j].deviceValues = tempVector;
                     deviceData[j].numberOfSensors = deviceData[j].deviceValues.size();
                     
-                    deviceData[j].deltaValues = updateDeltaValue(deviceData[j].deviceValues, deviceData[j].lastDeviceValues);
+                    deviceData[j].deltaValues = updateDeltaValues(deviceData[j].deviceValues, deviceData[j].lastDeviceValues);
+                    updateMinMaxValues(j, deviceData[j].deviceValues);
+                    
+                    outputDeviceValueOSC(j);
                 }
                 
                 // Set next lastDeviceValue
@@ -89,13 +92,12 @@ void ofApp::update(){
     }
 }
 
-std::vector<int> ofApp::updateDeltaValue(std::vector<int> value, std::vector<int> lastValue){
+std::vector<int> ofApp::updateDeltaValues(std::vector<int> value, std::vector<int> lastValue){
     std::vector<int> delta;
     // Check that the size of vectors match otherwise skip this for safety
     if (value.size() == lastValue.size()){
         delta.resize(value.size());
         for (std::size_t j = 0; j < value.size(); j++) {
-            delta.push_back();
             delta[j] = value[j] - lastValue[j];
         }
     } else {
@@ -104,14 +106,27 @@ std::vector<int> ofApp::updateDeltaValue(std::vector<int> value, std::vector<int
     return delta;
 }
 
-void ofApp::outputDeviceValueOSC(int deviceID, std::vector<int> deltaValues, std::vector<int> deviceValuesMin, std::vector<int> deviceValuesMax){
+std::vector<int> ofApp::updateMinMaxValues(int deviceID, std::vector<int> value){
+    for (std::size_t k = 0; k < value.size(); k++) {
+        if (value[k] > deviceData[deviceID].deviceValuesMax[k]){
+            deviceData[deviceID].deviceValuesMax[k] = value[k];
+        }
+        if (value[k] < deviceData[deviceID].deviceValuesMin[k]){
+            deviceData[deviceID].deviceValuesMin[k] = value[k];
+        }
+    }
+}
+
+void ofApp::outputDeviceValueOSC(int deviceID){
     // pitch = Delta
     // velocity = abs(Delta) mapped 0->127
     
     // Send received byte via OSC to server
     ofxOscMessage m;
     m.setAddress("/device" + to_string(deviceID));
-    m.addStringArg("");
+    for (std::size_t k = 0; k < deviceData[deviceID].deltaValues.size(); k++){
+        m.addIntArg(deviceData[deviceID].deltaValues[k]);
+    }
     sender.sendMessage(m, false);
 }
 

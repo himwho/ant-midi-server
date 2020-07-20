@@ -47,8 +47,9 @@ class ofApp : public ofBaseApp{
     
         std::vector<AntDevice> deviceData;
 
-        std::vector<int> updateDeltaValue(std::vector<int> value, std::vector<int> lastValue);
-        void outputDeviceValueOSC(int deviceID, std::vector<int> deltaValues, std::vector<int> deviceValuesMin, std::vector<int> deviceValuesMax);
+        std::vector<int> updateDeltaValues(std::vector<int> value, std::vector<int> lastValue);
+        std::vector<int> updateMinMaxValues(int deviceID, std::vector<int> value);
+        void outputDeviceValueOSC(int deviceID);
         std::vector<int> convertStrtoVec(string str);
         
         // OSC SETUP
