@@ -51,7 +51,8 @@ class ofApp : public ofBaseApp{
         std::vector<int> updateMinMaxValues(int deviceID, std::vector<int> value);
         void outputDeviceValueOSC(int deviceID);
         std::vector<int> convertStrtoVec(string str);
-        
+        float scale(float in, float inMin, float inMax, float outMin, float outMax);
+
         // OSC SETUP
         ofxOscSender sender;
 };

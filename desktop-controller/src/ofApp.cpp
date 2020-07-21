@@ -120,12 +120,28 @@ std::vector<int> ofApp::updateMinMaxValues(int deviceID, std::vector<int> value)
 void ofApp::outputDeviceValueOSC(int deviceID){
     // pitch = Delta
     // velocity = abs(Delta) mapped 0->127
+    std::vector<int> pitchValues;
+    std::vector<int> velocityValues;
+    pitchValues.resize(deviceData[deviceID].numberOfSensors);
+    velocityValues.resize(deviceData[deviceID].numberOfSensors);
+    
+    for (std::size_t k = 0; k < deviceData[deviceID].numberOfSensors; k++) {
+        pitchValues[k] = deviceData[deviceID].deltaValues[k];
+        velocityValues[k] = std::abs(scale(deviceData[deviceID].deltaValues[k], deviceData[deviceID].deviceValuesMin[k], deviceData[deviceID].deviceValuesMax[k], 0, 127));
+    }
+    
+    // set note length and bpm
     
     // Send received byte via OSC to server
     ofxOscMessage m;
     m.setAddress("/device" + to_string(deviceID));
-    for (std::size_t k = 0; k < deviceData[deviceID].deltaValues.size(); k++){
-        m.addIntArg(deviceData[deviceID].deltaValues[k]);
+    m.addStringArg("Pitch: ");
+    for (std::size_t k = 0; k < deviceData[deviceID].numberOfSensors; k++){
+        m.addIntArg(pitchValues[k]);
+    }
+    m.addStringArg("Velocity: ");
+    for (std::size_t k = 0; k < deviceData[deviceID].numberOfSensors; k++){
+        m.addIntArg(velocityValues[k]);
     }
     sender.sendMessage(m, false);
 }
@@ -142,12 +158,23 @@ std::vector<int> ofApp::convertStrtoVec(string str){
     return vector;
 }
 
+float ofApp::scale(float in, float inMin, float inMax, float outMin, float outMax){
+    long double percentage = (in-inMin)/(inMin-inMax);
+    return (percentage) * (outMin-outMax)+outMin;
+}
+
 //--------------------------------------------------------------
 void ofApp::draw(){
     for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {
         ofDrawBitmapStringHighlight("Ants found on port:  " + devices[j].port(), 20, (j * 20) + 20);
-        ofDrawBitmapString(receivedData[j], 20, (j * 20) + 100);
-        //ofDrawBitmapStringHighlight("Number of senors: " + std::to_string(deviceData[j].numberOfSensors), 20, (j * 20) + 120);
+        std::string valueString;
+        char tmpchar;
+        for (std::size_t k = 0; k < deviceData[j].deviceValues.size(); k++){
+            tmpchar = deviceData[j].deviceValues[k];
+            valueString += tmpchar;
+        }
+        ofDrawBitmapString(valueString, 20, (j * 20) + 100);
+        ofDrawBitmapStringHighlight("Number of senors: " + std::to_string(deviceData[j].numberOfSensors), ofGetWidth()/2, (j * 20) + 100);
     }
     ofDrawBitmapStringHighlight("FPS: " + std::to_string(ofGetFrameRate()), 20, ofGetHeight() - 20);
     ofDrawBitmapStringHighlight("Frame Number: " + std::to_string(ofGetFrameNum()), 20, ofGetHeight() - 40);
