@@ -37,6 +37,7 @@ class ofApp : public ofBaseApp{
 
         // DEVICE STRUCT
         struct AntDevice {
+            bool bSetupComplete = false;
             int numberOfSensors;
             std::vector<int> deviceValues;
             std::vector<int> lastDeviceValues;

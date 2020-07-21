@@ -72,6 +72,18 @@ void ofApp::update(){
                     deviceData[j].deviceValues = tempVector;
                     deviceData[j].numberOfSensors = deviceData[j].deviceValues.size();
                     
+                    // Initial setup for min/max values per device
+                    if (!deviceData[j].bSetupComplete){
+                        deviceData[j].deviceValuesMin.resize(deviceData[j].numberOfSensors);
+                        deviceData[j].deviceValuesMax.resize(deviceData[j].numberOfSensors);
+                        for (std::size_t k = 0; k < deviceData[j].numberOfSensors; k++){
+                            deviceData[j].deviceValuesMin[k] = 1023;
+                            deviceData[j].deviceValuesMax[k] = 0;
+                        }
+                        updateMinMaxValues(j, deviceData[j].deviceValues);
+                        deviceData[j].bSetupComplete = true;
+                    }
+                    
                     deviceData[j].deltaValues = updateDeltaValues(deviceData[j].deviceValues, deviceData[j].lastDeviceValues);
                     updateMinMaxValues(j, deviceData[j].deviceValues);
                     
@@ -107,13 +119,17 @@ std::vector<int> ofApp::updateDeltaValues(std::vector<int> value, std::vector<in
 }
 
 std::vector<int> ofApp::updateMinMaxValues(int deviceID, std::vector<int> value){
-    for (std::size_t k = 0; k < value.size(); k++) {
-        if (value[k] > deviceData[deviceID].deviceValuesMax[k]){
-            deviceData[deviceID].deviceValuesMax[k] = value[k];
+    if (value.size() == deviceData[deviceID].numberOfSensors){
+        for (std::size_t k = 0; k < value.size(); k++) {
+            if (value[k] > deviceData[deviceID].deviceValuesMax[k]){
+                deviceData[deviceID].deviceValuesMax[k] = value[k];
+            }
+            if (value[k] < deviceData[deviceID].deviceValuesMin[k]){
+                deviceData[deviceID].deviceValuesMin[k] = value[k];
+            }
         }
-        if (value[k] < deviceData[deviceID].deviceValuesMin[k]){
-            deviceData[deviceID].deviceValuesMin[k] = value[k];
-        }
+    } else {
+        ofLogError("Update MinMax: ") << "Mismatched sizes.";
     }
 }
 
