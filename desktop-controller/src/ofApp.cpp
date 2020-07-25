@@ -73,21 +73,26 @@ void ofApp::update(){
                     deviceData[j].numberOfSensors = deviceData[j].deviceValues.size();
                     
                     // Initial setup for min/max values per device
-                    if (!deviceData[j].bSetupComplete){
+                    if (deviceData[j].bSetupComplete){
+                        deviceData[j].deltaValues = updateDeltaValues(deviceData[j].deviceValues, deviceData[j].lastDeviceValues);
+                        updateMinMaxValues(j, deviceData[j].deviceValues);
+                        outputDeviceValueOSC(j);
+                    } else if (!deviceData[j].bSetupComplete){
                         deviceData[j].deviceValuesMin.resize(deviceData[j].numberOfSensors);
                         deviceData[j].deviceValuesMax.resize(deviceData[j].numberOfSensors);
+                        deviceData[j].deltaValues.resize(deviceData[j].numberOfSensors);
+                        deviceData[j].lastDeviceValues.resize(deviceData[j].numberOfSensors);
                         for (std::size_t k = 0; k < deviceData[j].numberOfSensors; k++){
                             deviceData[j].deviceValuesMin[k] = 1023;
                             deviceData[j].deviceValuesMax[k] = 0;
+                            deviceData[j].deltaValues[k] = 0;
+                            deviceData[j].lastDeviceValues[k] = 0;
                         }
                         updateMinMaxValues(j, deviceData[j].deviceValues);
                         deviceData[j].bSetupComplete = true;
+                    } else {
+                        ofLogError("ofApp::update") << "Not sure how I missed safety bool";
                     }
-                    
-                    deviceData[j].deltaValues = updateDeltaValues(deviceData[j].deviceValues, deviceData[j].lastDeviceValues);
-                    updateMinMaxValues(j, deviceData[j].deviceValues);
-                    
-                    outputDeviceValueOSC(j);
                 }
                 
                 // Set next lastDeviceValue
@@ -118,7 +123,7 @@ std::vector<int> ofApp::updateDeltaValues(std::vector<int> value, std::vector<in
     return delta;
 }
 
-std::vector<int> ofApp::updateMinMaxValues(int deviceID, std::vector<int> value){
+void ofApp::updateMinMaxValues(int deviceID, std::vector<int> value){
     if (value.size() == deviceData[deviceID].numberOfSensors){
         for (std::size_t k = 0; k < value.size(); k++) {
             if (value[k] > deviceData[deviceID].deviceValuesMax[k]){
@@ -183,13 +188,18 @@ float ofApp::scale(float in, float inMin, float inMax, float outMin, float outMa
 void ofApp::draw(){
     for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {
         ofDrawBitmapStringHighlight("Ants found on port:  " + devices[j].port(), 20, (j * 20) + 20);
-        std::string valueString;
-        char tmpchar;
-        for (std::size_t k = 0; k < deviceData[j].deviceValues.size(); k++){
-            tmpchar = deviceData[j].deviceValues[k];
-            valueString += tmpchar;
+        std::vector<int>::const_iterator it;
+        std::stringstream deltas;
+        for (it = deviceData[j].deltaValues.begin(); it != deviceData[j].deltaValues.end(); ++it){
+            if (it != deviceData[j].deltaValues.begin()){
+                deltas << " ";
+            }
+            deltas << *it;
         }
-        ofDrawBitmapString(valueString, 20, (j * 20) + 100);
+//        std::copy(deviceData[j].deltaValues.begin(), deviceData[j].deltaValues.end(), std::ostream_iterator<int>(deltas, " "));
+//        std::string s = deltas.str();
+//        s = s.substr(0, s.length()-1);
+        ofDrawBitmapString(deltas.str().c_str(), 20, (j * 20) + 100);
         ofDrawBitmapStringHighlight("Number of senors: " + std::to_string(deviceData[j].numberOfSensors), ofGetWidth()/2, (j * 20) + 100);
     }
     ofDrawBitmapStringHighlight("FPS: " + std::to_string(ofGetFrameRate()), 20, ofGetHeight() - 20);
@@ -247,6 +257,6 @@ void ofApp::gotMessage(ofMessage msg){
 }
 
 //--------------------------------------------------------------
-void ofApp::dragEvent(ofDragInfo dragInfo){ 
+void ofApp::dragEvent(ofDragInfo dragInfo){
 
 }

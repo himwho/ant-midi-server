@@ -49,7 +49,7 @@ class ofApp : public ofBaseApp{
         std::vector<AntDevice> deviceData;
 
         std::vector<int> updateDeltaValues(std::vector<int> value, std::vector<int> lastValue);
-        std::vector<int> updateMinMaxValues(int deviceID, std::vector<int> value);
+        void updateMinMaxValues(int deviceID, std::vector<int> value);
         void outputDeviceValueOSC(int deviceID);
         std::vector<int> convertStrtoVec(string str);
         float scale(float in, float inMin, float inMax, float outMin, float outMax);
