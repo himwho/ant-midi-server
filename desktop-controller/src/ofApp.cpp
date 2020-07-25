@@ -59,7 +59,7 @@ void ofApp::update(){
         // TODO: Change this to check all available devices
         if (devices.size() > 0) {
             for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {
-                while (devices[j].available() > 0){
+                while (devices[j].available() > 0){ //TODO: bug this blocks flow to first device
                     // Read all bytes from the devices;
                     std::vector<uint8_t> buffer;
                     buffer = devices[j].readBytesUntil(); //TODO: find out device range and size for buffer properly
@@ -76,7 +76,20 @@ void ofApp::update(){
                     if (deviceData[j].bSetupComplete){
                         deviceData[j].deltaValues = updateDeltaValues(deviceData[j].deviceValues, deviceData[j].lastDeviceValues);
                         updateMinMaxValues(j, deviceData[j].deviceValues);
-                        outputDeviceValueOSC(j);
+                        
+                        for (std::size_t k = 0; k < deviceData[j].numberOfSensors; k++){
+                            if (std::abs(deviceData[j].deltaValues[k]) > 10){
+                                std::cout << "BANG: 10 | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
+                                outputDeviceValueOSC(j);
+
+                            } else if (std::abs(deviceData[j].deltaValues[k]) > 5){
+                                std::cout << "BANG: 5 | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
+                                outputDeviceValueOSC(j);
+                            } else if (std::abs(deviceData[j].deltaValues[k]) >  3){
+                                std::cout << "BANG: 3 | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
+                                outputDeviceValueOSC(j);
+                            }
+                        }
                     } else if (!deviceData[j].bSetupComplete){
                         deviceData[j].deviceValuesMin.resize(deviceData[j].numberOfSensors);
                         deviceData[j].deviceValuesMax.resize(deviceData[j].numberOfSensors);
@@ -91,7 +104,7 @@ void ofApp::update(){
                         updateMinMaxValues(j, deviceData[j].deviceValues);
                         deviceData[j].bSetupComplete = true;
                     } else {
-                        ofLogError("ofApp::update") << "Not sure how I missed safety bool";
+                        ofLogError("ofApp::update") << "Setup state issue.";
                     }
                 }
                 
@@ -187,21 +200,27 @@ float ofApp::scale(float in, float inMin, float inMax, float outMin, float outMa
 //--------------------------------------------------------------
 void ofApp::draw(){
     for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {
+        ofSetColor(255, 255, 255); //white
         ofDrawBitmapStringHighlight("Ants found on port:  " + devices[j].port(), 20, (j * 20) + 20);
-        std::vector<int>::const_iterator it;
         std::stringstream deltas;
-        for (it = deviceData[j].deltaValues.begin(); it != deviceData[j].deltaValues.end(); ++it){
-            if (it != deviceData[j].deltaValues.begin()){
-                deltas << " ";
-            }
-            deltas << *it;
-        }
-//        std::copy(deviceData[j].deltaValues.begin(), deviceData[j].deltaValues.end(), std::ostream_iterator<int>(deltas, " "));
-//        std::string s = deltas.str();
-//        s = s.substr(0, s.length()-1);
+        std::copy(deviceData[j].deltaValues.begin(), deviceData[j].deltaValues.end(), std::ostream_iterator<int>(deltas, " "));
+        std::string s = deltas.str();
+        s = s.substr(0, s.length()-1);
         ofDrawBitmapString(deltas.str().c_str(), 20, (j * 20) + 100);
         ofDrawBitmapStringHighlight("Number of senors: " + std::to_string(deviceData[j].numberOfSensors), ofGetWidth()/2, (j * 20) + 100);
+        
+        for (std::size_t k = 0; k < deviceData[j].numberOfSensors; k++){
+            ofSetColor(255, 255, 255); //white
+            ofDrawCircle((k * 25) + 20, (j * 20) + 200, 5); //exterior
+            ofSetColor(0, 0, 0); //black
+            ofDrawCircle((k * 25) + 20, (j * 20) + 200, 4); //interior
+            if (std::abs(deviceData[j].deltaValues[k]) > 0){
+                ofSetColor(std::abs(deviceData[j].deltaValues[k] * 50), 0, 0);
+                ofDrawCircle((k * 25) + 20, (j * 20) + 200, 3); //value
+            }
+        }
     }
+    
     ofDrawBitmapStringHighlight("FPS: " + std::to_string(ofGetFrameRate()), 20, ofGetHeight() - 20);
     ofDrawBitmapStringHighlight("Frame Number: " + std::to_string(ofGetFrameNum()), 20, ofGetHeight() - 40);
 }
