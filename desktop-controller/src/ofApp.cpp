@@ -159,7 +159,7 @@ void ofApp::outputDeviceValueOSC(int deviceID, int sensorID){
     
     // Locally set the pitch and velocity of the bang from the input device/sensor
     int pitch, velocity;
-    pitch = ofMap(deviceData[deviceID].deltaValues[sensorID] - deviceData[deviceID].lastDeviceValues[sensorID], deviceData[deviceID].deviceValuesMin[sensorID], deviceData[deviceID].deviceValuesMax[sensorID], 0, 127);
+    pitch = ofMap(deviceData[deviceID].deltaValues[sensorID], deviceData[deviceID].deviceValuesMin[sensorID], deviceData[deviceID].deviceValuesMax[sensorID], 0, 127);
     velocity = ofMap(std::abs(deviceData[deviceID].deltaValues[sensorID]) + deviceData[deviceID].deviceValuesMin[sensorID] - deviceData[deviceID].lastDeviceValues[sensorID], deviceData[deviceID].deviceValuesMin[sensorID], deviceData[deviceID].deviceValuesMax[sensorID], 0, 127);
     
     // Send received byte via OSC to server
