@@ -4,6 +4,10 @@
 #include <iostream>
 #include <ostream>
 #include <sstream>
+#include <chrono>
+#include <thread>
+#include <future>
+#include "ofxMidiConstants.h"
 
 //--------------------------------------------------------------
 void ofApp::setup(){
@@ -58,7 +62,7 @@ void ofApp::update(){
     try {
         // TODO: Change this to check all available devices
         if (devices.size() > 0) {
-            for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {
+            for (int j = 0; j < numberOfConnectedDevices; j++) {
                 while (devices[j].available() > 0){ //TODO: bug this blocks flow to first device
                     // Read all bytes from the devices;
                     std::vector<uint8_t> buffer;
@@ -77,17 +81,16 @@ void ofApp::update(){
                         deviceData[j].deltaValues = updateDeltaValues(deviceData[j].deviceValues, deviceData[j].lastDeviceValues);
                         updateMinMaxValues(j, deviceData[j].deviceValues);
                         
-                        for (std::size_t k = 0; k < deviceData[j].numberOfSensors; k++){
+                        for (int k = 0; k < deviceData[j].numberOfSensors; k++){
                             if (std::abs(deviceData[j].deltaValues[k]) > 10){
                                 std::cout << "BANG: 10 | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
-                                outputDeviceValueOSC(j);
-
+                                outputDeviceValueOSC(j, k);
                             } else if (std::abs(deviceData[j].deltaValues[k]) > 5){
                                 std::cout << "BANG: 5 | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
-                                outputDeviceValueOSC(j);
+                                outputDeviceValueOSC(j, k);
                             } else if (std::abs(deviceData[j].deltaValues[k]) >  3){
                                 std::cout << "BANG: 3 | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
-                                outputDeviceValueOSC(j);
+                                outputDeviceValueOSC(j, k);
                             }
                         }
                     } else if (!deviceData[j].bSetupComplete){
@@ -151,32 +154,44 @@ void ofApp::updateMinMaxValues(int deviceID, std::vector<int> value){
     }
 }
 
-void ofApp::outputDeviceValueOSC(int deviceID){
-    // pitch = Delta
-    // velocity = abs(Delta) mapped 0->127
-    std::vector<int> pitchValues;
-    std::vector<int> velocityValues;
-    pitchValues.resize(deviceData[deviceID].numberOfSensors);
-    velocityValues.resize(deviceData[deviceID].numberOfSensors);
+void ofApp::outputDeviceValueOSC(int deviceID, int sensorID){
+    // TODO: Set note length and bpm
     
-    for (std::size_t k = 0; k < deviceData[deviceID].numberOfSensors; k++) {
-        pitchValues[k] = deviceData[deviceID].deltaValues[k];
-        velocityValues[k] = std::abs(scale(deviceData[deviceID].deltaValues[k], deviceData[deviceID].deviceValuesMin[k], deviceData[deviceID].deviceValuesMax[k], 0, 127));
-    }
-    
-    // set note length and bpm
+    // Locally set the pitch and velocity of the bang from the input device/sensor
+    int pitch, velocity;
+    pitch = ofMap(deviceData[deviceID].deltaValues[sensorID] - deviceData[deviceID].lastDeviceValues[sensorID], deviceData[deviceID].deviceValuesMin[sensorID], deviceData[deviceID].deviceValuesMax[sensorID], 0, 127);
+    velocity = ofMap(std::abs(deviceData[deviceID].deltaValues[sensorID]) + deviceData[deviceID].deviceValuesMin[sensorID] - deviceData[deviceID].lastDeviceValues[sensorID], deviceData[deviceID].deviceValuesMin[sensorID], deviceData[deviceID].deviceValuesMax[sensorID], 0, 127);
     
     // Send received byte via OSC to server
     ofxOscMessage m;
     m.setAddress("/device" + to_string(deviceID));
-    m.addStringArg("Pitch: ");
-    for (std::size_t k = 0; k < deviceData[deviceID].numberOfSensors; k++){
-        m.addIntArg(pitchValues[k]);
-    }
-    m.addStringArg("Velocity: ");
-    for (std::size_t k = 0; k < deviceData[deviceID].numberOfSensors; k++){
-        m.addIntArg(velocityValues[k]);
-    }
+    int channel = 1;    
+    std::vector<unsigned char> rawMessage;
+    rawMessage.push_back(MIDI_NOTE_ON+(channel-1));
+    rawMessage.push_back(pitch);
+    rawMessage.push_back(velocity);
+    m.addInt32Arg(rawMessage[0]);
+    m.addInt32Arg(rawMessage[1]);
+    m.addInt32Arg(rawMessage[2]);
+    sender.sendMessage(m, false);
+    
+    oscNoteOff(deviceID, sensorID, 0.25, channel, pitch);
+}
+
+void ofApp::oscNoteOff(int deviceID, int sensorID, float seconds, int channel, int pitch){
+    // Delay for `seconds`
+    std::this_thread::sleep_for( std::chrono::seconds{(long)seconds});
+    
+    // Send stop message
+    ofxOscMessage m;
+    m.setAddress("/device" + to_string(deviceID));
+    std::vector<unsigned char> rawMessage;
+    rawMessage.push_back(MIDI_NOTE_OFF+(channel-1));
+    rawMessage.push_back(pitch);
+    rawMessage.push_back(0);
+    m.addInt32Arg(rawMessage[0]);
+    m.addInt32Arg(rawMessage[1]);
+    m.addInt32Arg(rawMessage[2]);
     sender.sendMessage(m, false);
 }
 

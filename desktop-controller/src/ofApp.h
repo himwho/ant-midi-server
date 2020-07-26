@@ -50,10 +50,11 @@ class ofApp : public ofBaseApp{
 
         std::vector<int> updateDeltaValues(std::vector<int> value, std::vector<int> lastValue);
         void updateMinMaxValues(int deviceID, std::vector<int> value);
-        void outputDeviceValueOSC(int deviceID);
+        void outputDeviceValueOSC(int deviceID, int sensorID);
+        void oscNoteOff(int deviceID, int sensorID, float seconds, int channel, int pitch);
         std::vector<int> convertStrtoVec(string str);
         float scale(float in, float inMin, float inMax, float outMin, float outMax);
 
         // OSC SETUP
-        ofxOscSender sender;
+        ofxOscSender sender;        
 };
