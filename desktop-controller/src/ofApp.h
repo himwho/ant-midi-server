@@ -5,7 +5,7 @@
 #include "ofxOsc.h"
 
 // send host (aka ip address)
-#define HOST "localhost"
+#define HOST "ec2-3-94-213-186.compute-1.amazonaws.com"
 
 /// send port
 #define PORT 9998
@@ -32,6 +32,7 @@ class ofApp : public ofBaseApp{
         // SERIAL SETUP
         std::vector<ofx::IO::SerialDevice> devices;
         int numberOfConnectedDevices = 0;
+        bool bInitialSetupComplete = false;
         std::vector<std::string> receivedData;
         std::vector<int> foundDevicesArray;
 
@@ -48,6 +49,7 @@ class ofApp : public ofBaseApp{
     
         std::vector<AntDevice> deviceData;
 
+        void setupDevices(int deviceID);
         std::vector<int> updateDeltaValues(std::vector<int> value, std::vector<int> lastValue);
         void updateMinMaxValues(int deviceID, std::vector<int> value);
         void outputDeviceValueOSC(int deviceID, int sensorID);

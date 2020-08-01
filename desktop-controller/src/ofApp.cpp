@@ -7,6 +7,7 @@
 #include <chrono>
 #include <thread>
 #include <future>
+#include <math.h>
 #include "ofxMidiConstants.h"
 
 //--------------------------------------------------------------
@@ -46,6 +47,14 @@ void ofApp::setup(){
         deviceData.resize(numberOfConnectedDevices);
         receivedData.resize(numberOfConnectedDevices);
         std::cout << "< Array of Devices" << std::endl;
+        setupDevices(0);
+        for (int mult = 0; mult < 3; mult++){
+            for (int numDevices = 0; numDevices < numberOfConnectedDevices; numDevices++){
+                setupDevices(numDevices);
+                std::this_thread::sleep_for( std::chrono::seconds{(long)0.25});
+            }
+        }
+        bInitialSetupComplete = true;
     } else {
         ofLogNotice("ofApp::setup") << "No devices connected.";
     }
@@ -56,70 +65,91 @@ void ofApp::setup(){
     ofLogNotice("ofApp::setup") << "OSC Port: " << PORT;
 }
 
+void ofApp::setupDevices(int deviceID){
+    // Initial setup for min/max values per device
+    // Send next message of current frame
+    devices[deviceID].writeByte((unsigned char)ofGetFrameNum());
+    devices[deviceID].writeByte('\n');
+    std::this_thread::sleep_for( std::chrono::seconds{(long)0.1});
+
+    // Read all bytes from the devices;
+    std::vector<uint8_t> buffer;
+    buffer = devices[deviceID].readBytesUntil(); //TODO: find out device range and size for buffer properly
+    std::string str(buffer.begin(), buffer.end());
+    receivedData[deviceID] = str;
+    
+    // Convert string and set array of values
+    std::vector<int> tempVector = convertStrtoVec(receivedData[deviceID]);
+    deviceData[deviceID].deviceValues = tempVector;
+    deviceData[deviceID].numberOfSensors = deviceData[deviceID].deviceValues.size();
+
+    if (!deviceData[deviceID].bSetupComplete){
+        deviceData[deviceID].deviceValues.resize(deviceData[deviceID].numberOfSensors);
+        deviceData[deviceID].deviceValuesMin.resize(deviceData[deviceID].numberOfSensors);
+        deviceData[deviceID].deviceValuesMax.resize(deviceData[deviceID].numberOfSensors);
+        deviceData[deviceID].deltaValues.resize(deviceData[deviceID].numberOfSensors);
+        deviceData[deviceID].lastDeviceValues.resize(deviceData[deviceID].numberOfSensors);
+
+        for (int k = 0; k < deviceData[deviceID].numberOfSensors; k++){
+            deviceData[deviceID].deviceValuesMin[k] = 1023;
+            deviceData[deviceID].deviceValuesMax[k] = 0;
+            deviceData[deviceID].deltaValues[k] = 0;
+            deviceData[deviceID].lastDeviceValues[k] = 0;
+            deviceData[deviceID].deviceValues[k] = 0;
+        }
+        deviceData[deviceID].bSetupComplete = true;
+    }
+}
+
 //--------------------------------------------------------------
 void ofApp::update(){
     // The serial device can throw exeptions.
     try {
-        // TODO: Change this to check all available devices
-        if (devices.size() > 0) {
+        if (bInitialSetupComplete && devices.size() > 0) {
             for (int j = 0; j < numberOfConnectedDevices; j++) {
-                while (devices[j].available() > 0){ //TODO: bug this blocks flow to first device
-                    // Read all bytes from the devices;
-                    std::vector<uint8_t> buffer;
-                    buffer = devices[j].readBytesUntil(); //TODO: find out device range and size for buffer properly
-                    std::string str(buffer.begin(), buffer.end());
-                    std::cout << "Device [" << j << "]: " << str << std::endl;
-                    receivedData[j] = str;
-                    
-                    // Convert string and set array of values
-                    std::vector<int> tempVector = convertStrtoVec(receivedData[j]);
-                    deviceData[j].deviceValues = tempVector;
-                    deviceData[j].numberOfSensors = deviceData[j].deviceValues.size();
-                    
-                    // Initial setup for min/max values per device
-                    if (deviceData[j].bSetupComplete){
-                        deviceData[j].deltaValues = updateDeltaValues(deviceData[j].deviceValues, deviceData[j].lastDeviceValues);
-                        updateMinMaxValues(j, deviceData[j].deviceValues);
+                if (deviceData[j].bSetupComplete){
+                    while (devices[j].available() > 0){ //TODO: bug this blocks flow to first device
+                        // Read all bytes from the devices;
+                        std::vector<uint8_t> buffer;
+                        buffer = devices[j].readBytesUntil(); //TODO: find out device range and size for buffer properly
+                        std::string str(buffer.begin(), buffer.end());
+                        std::cout << "Device [" << j << "]: " << str << std::endl;
+                        receivedData[j] = str;
                         
-                        for (int k = 0; k < deviceData[j].numberOfSensors; k++){
-                            if (std::abs(deviceData[j].deltaValues[k]) > 10){
-                                std::cout << "BANG: 10 | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
-                                outputDeviceValueOSC(j, k);
-                            } else if (std::abs(deviceData[j].deltaValues[k]) > 5){
-                                std::cout << "BANG: 5 | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
-                                outputDeviceValueOSC(j, k);
-                            } else if (std::abs(deviceData[j].deltaValues[k]) >  3){
-                                std::cout << "BANG: 3 | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
-                                outputDeviceValueOSC(j, k);
+                        // Convert string and set array of values
+                        std::vector<int> tempVector = convertStrtoVec(receivedData[j]);
+                        deviceData[j].deviceValues = tempVector;
+                        deviceData[j].numberOfSensors = deviceData[j].deviceValues.size();
+                        
+                        if (deviceData[j].bSetupComplete){
+                            deviceData[j].deltaValues = updateDeltaValues(deviceData[j].deviceValues, deviceData[j].lastDeviceValues);
+                            updateMinMaxValues(j, deviceData[j].deviceValues);
+                            
+                            for (int k = 0; k < deviceData[j].numberOfSensors; k++){
+                                if (std::abs(deviceData[j].deltaValues[k]) > 10){
+                                    std::cout << "BANG: 10 | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
+                                    outputDeviceValueOSC(j, k);
+                                } else if (std::abs(deviceData[j].deltaValues[k]) > 5){
+                                    std::cout << "BANG: 5  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
+                                    outputDeviceValueOSC(j, k);
+                                } else if (std::abs(deviceData[j].deltaValues[k]) >  3){
+                                    std::cout << "BANG: 3  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
+                                    //outputDeviceValueOSC(j, k);
+                                }
                             }
+                        } else {
+                            ofLogError("ofApp::update") << "Setup state issue.";
                         }
-                    } else if (!deviceData[j].bSetupComplete){
-                        deviceData[j].deviceValuesMin.resize(deviceData[j].numberOfSensors);
-                        deviceData[j].deviceValuesMax.resize(deviceData[j].numberOfSensors);
-                        deviceData[j].deltaValues.resize(deviceData[j].numberOfSensors);
-                        deviceData[j].lastDeviceValues.resize(deviceData[j].numberOfSensors);
-                        for (std::size_t k = 0; k < deviceData[j].numberOfSensors; k++){
-                            deviceData[j].deviceValuesMin[k] = 1023;
-                            deviceData[j].deviceValuesMax[k] = 0;
-                            deviceData[j].deltaValues[k] = 0;
-                            deviceData[j].lastDeviceValues[k] = 0;
-                        }
-                        updateMinMaxValues(j, deviceData[j].deviceValues);
-                        deviceData[j].bSetupComplete = true;
-                    } else {
-                        ofLogError("ofApp::update") << "Setup state issue.";
+                    // Set next lastDeviceValue
+                    deviceData[j].lastDeviceValues = deviceData[j].deviceValues;
+                    
+                    // Send next message of current frame
+                    devices[j].writeByte((unsigned char)ofGetFrameNum());
+                    devices[j].writeByte('\n');
                     }
                 }
-                
-                // Set next lastDeviceValue
-                deviceData[j].lastDeviceValues = deviceData[j].deviceValues;
-                
-                // Send next message of current frame
-                devices[j].writeByte((unsigned char)ofGetFrameNum());
-                devices[j].writeByte('\n');
             }
         }
-        
     } catch (const std::exception& exc) {
         ofLogError("ofApp::update") << exc.what();
     }
@@ -141,7 +171,7 @@ std::vector<int> ofApp::updateDeltaValues(std::vector<int> value, std::vector<in
 
 void ofApp::updateMinMaxValues(int deviceID, std::vector<int> value){
     if (value.size() == deviceData[deviceID].numberOfSensors){
-        for (std::size_t k = 0; k < value.size(); k++) {
+        for (int k = 0; k < value.size(); k++) {
             if (value[k] > deviceData[deviceID].deviceValuesMax[k]){
                 deviceData[deviceID].deviceValuesMax[k] = value[k];
             }
@@ -158,10 +188,19 @@ void ofApp::outputDeviceValueOSC(int deviceID, int sensorID){
     // TODO: Set note length and bpm
     
     // Locally set the pitch and velocity of the bang from the input device/sensor
-    int pitch, velocity;
-    pitch = ofMap(deviceData[deviceID].deltaValues[sensorID], deviceData[deviceID].deviceValuesMin[sensorID], deviceData[deviceID].deviceValuesMax[sensorID], 0, 127);
-    velocity = ofMap(std::abs(deviceData[deviceID].deltaValues[sensorID]) + deviceData[deviceID].deviceValuesMin[sensorID] - deviceData[deviceID].lastDeviceValues[sensorID], deviceData[deviceID].deviceValuesMin[sensorID], deviceData[deviceID].deviceValuesMax[sensorID], 0, 127);
-    
+    float fpitch, fvelocity;
+    int inputValue = deviceData[deviceID].deviceValues[sensorID];
+    int inputMin = deviceData[deviceID].deviceValuesMin[sensorID];
+    int inputMax = deviceData[deviceID].deviceValuesMax[sensorID];
+    int inputDelta = deviceData[deviceID].deltaValues[sensorID];
+    int inputLastValue = deviceData[deviceID].lastDeviceValues[sensorID];
+
+    fpitch = ofMap(inputValue, inputMin, inputMax, 42, 100, true);
+    fvelocity = ofMap(inputValue, inputMin, inputMax, 0, 127, true);
+    int pitch = (int) fpitch;
+    int velocity = (int) fvelocity;
+    std::cout << "DEBUG: Device " << deviceID << " | Sensor: " << sensorID << " | Pitch: " << pitch << " | Velocity: " << velocity << std::endl;
+
     // Send received byte via OSC to server
     ofxOscMessage m;
     m.setAddress("/device" + to_string(deviceID));
