@@ -50,7 +50,7 @@ class ofApp : public ofBaseApp{
         std::vector<AntDevice> deviceData;
 
         void setupDevice(int deviceID);
-        std::vector<int> updateDeltaValues(int deviceID, std::vector<int> value, std::vector<int> lastValue);
+        void updateDeltaValues(int deviceID, std::vector<int> value, std::vector<int> lastValue);
         void updateMinMaxValues(int deviceID, std::vector<int> value);
         void outputDeviceValueOSC(int deviceID, int sensorID);
         void oscNoteOff(int deviceID, int sensorID, float seconds, int channel, int pitch);

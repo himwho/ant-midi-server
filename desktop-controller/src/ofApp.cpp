@@ -151,23 +151,26 @@ void ofApp::update(){
     }
 }
 
-std::vector<int> ofApp::updateDeltaValues(int deviceID, std::vector<int> value, std::vector<int> lastValue){
-    std::vector<int> delta;
+void ofApp::updateDeltaValues(int deviceID, std::vector<int> value, std::vector<int> lastValue){
     // Check that the size of vectors match otherwise skip this for safety
     if (value.size() == deviceData[deviceID].numberOfSensors){
-        delta.resize(value.size());
+        deviceData[deviceID].deviceValues.resize(deviceData[deviceID].numberOfSensors);
+        deviceData[deviceID].lastDeviceValues.resize(deviceData[deviceID].numberOfSensors);
+        deviceData[deviceID].deltaValues.resize(deviceData[deviceID].numberOfSensors);
         for (std::size_t j = 0; j < value.size(); j++) {
-            delta[j] = value[j] - lastValue[j];
+            deviceData[deviceID].deltaValues[j] = value[j] - lastValue[j];
         }
     } else {
         setupDevice(deviceID);
         ofLogError("Update Delta: ") << "Mismatched sizes.";
     }
-    return delta;
 }
 
 void ofApp::updateMinMaxValues(int deviceID, std::vector<int> value){
+    // Check that the size of vectors match otherwise skip this for safety
     if (value.size() == deviceData[deviceID].numberOfSensors){
+        deviceData[deviceID].deviceValuesMin.resize(deviceData[deviceID].numberOfSensors);
+        deviceData[deviceID].deviceValuesMax.resize(deviceData[deviceID].numberOfSensors);
         for (int k = 0; k < value.size(); k++) {
             if (value[k] > deviceData[deviceID].deviceValuesMax[k]){
                 deviceData[deviceID].deviceValuesMax[k] = value[k];
