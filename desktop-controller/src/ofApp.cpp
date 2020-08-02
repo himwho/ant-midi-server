@@ -108,7 +108,6 @@ void ofApp::update(){
                         std::vector<uint8_t> buffer;
                         buffer = devices[j].readBytesUntil(); //TODO: find out device range and size for buffer properly
                         std::string str(buffer.begin(), buffer.end());
-                        std::cout << "Device [" << j << "]: " << str << std::endl;
                         receivedData[j] = str;
                         
                         // Convert string and set array of values
@@ -118,7 +117,6 @@ void ofApp::update(){
                             // good to continue
                             updateDeltaValues(j, deviceData[j].deviceValues, deviceData[j].lastDeviceValues);
                             updateMinMaxValues(j, deviceData[j].deviceValues);
-                            
                             for (int k = 0; k < deviceData[j].numberOfSensors; k++){
                                 if (std::abs(deviceData[j].deltaValues[k]) > 10){
                                     std::cout << "BANG: 10 | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
@@ -131,17 +129,12 @@ void ofApp::update(){
                                     //outputDeviceValueOSC(j, k);
                                 }
                             }
-                            
                             // Set next lastDeviceValue
                             deviceData[j].lastDeviceValues = deviceData[j].deviceValues;
                         } else {
                             // had a read error and resetting for setup check
                             setupDevice(j);
                         }
-                    
-//                    // Send next message of current frame
-//                    devices[j].writeByte((unsigned char)ofGetFrameNum());
-//                    devices[j].writeByte('\n');
                     }
                 }
             }
@@ -198,7 +191,6 @@ void ofApp::outputDeviceValueOSC(int deviceID, int sensorID){
     fvelocity = ofMap(inputValue, inputMin, inputMax, 0, 127, true);
     int pitch = (int) fpitch;
     int velocity = (int) fvelocity;
-    std::cout << "DEBUG: Device " << deviceID << " | Sensor: " << sensorID << " | Pitch: " << pitch << " | Velocity: " << velocity << std::endl;
 
     // Send received byte via OSC to server
     ofxOscMessage m;
