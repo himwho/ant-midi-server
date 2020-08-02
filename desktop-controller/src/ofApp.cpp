@@ -68,7 +68,7 @@ void ofApp::setupDevice(int deviceID){
     // Send next message of current frame
     devices[deviceID].writeByte((unsigned char)ofGetFrameNum());
     devices[deviceID].writeByte('\n');
-    std::this_thread::sleep_for( std::chrono::seconds{(long)0.1});
+    std::this_thread::sleep_for( std::chrono::seconds{(long)0.01});
 
     // Read all bytes from the devices;
     std::vector<uint8_t> buffer;
@@ -81,22 +81,14 @@ void ofApp::setupDevice(int deviceID){
     deviceData[deviceID].deviceValues = tempVector;
     deviceData[deviceID].numberOfSensors = deviceData[deviceID].deviceValues.size();
 
-    if (!deviceData[deviceID].bSetupComplete){
-        deviceData[deviceID].deviceValues.resize(deviceData[deviceID].numberOfSensors);
-        deviceData[deviceID].deviceValuesMin.resize(deviceData[deviceID].numberOfSensors);
-        deviceData[deviceID].deviceValuesMax.resize(deviceData[deviceID].numberOfSensors);
-        deviceData[deviceID].deltaValues.resize(deviceData[deviceID].numberOfSensors);
-        deviceData[deviceID].lastDeviceValues.resize(deviceData[deviceID].numberOfSensors);
-
-        for (int k = 0; k < deviceData[deviceID].numberOfSensors; k++){
-            deviceData[deviceID].deviceValuesMin[k] = 1023;
-            deviceData[deviceID].deviceValuesMax[k] = 0;
-            deviceData[deviceID].deltaValues[k] = 0;
-            deviceData[deviceID].lastDeviceValues[k] = 0;
-            deviceData[deviceID].deviceValues[k] = 0;
-        }
-        deviceData[deviceID].bSetupComplete = true;
+    for (int k = 0; k < deviceData[deviceID].numberOfSensors; k++){
+        deviceData[deviceID].deviceValues.push_back(0);
+        deviceData[deviceID].deviceValuesMin.push_back(1023);
+        deviceData[deviceID].deviceValuesMax.push_back(0);
+        deviceData[deviceID].deltaValues.push_back(0);
+        deviceData[deviceID].lastDeviceValues.push_back(0);
     }
+    deviceData[deviceID].bSetupComplete = true;
 }
 
 //--------------------------------------------------------------
@@ -107,6 +99,11 @@ void ofApp::update(){
             for (int j = 0; j < numberOfConnectedDevices; j++) {
                 if (deviceData[j].bSetupComplete){
                     while (devices[j].available() > 0){ //TODO: bug this blocks flow to first device
+                        // Send next message of current frame
+                        devices[j].writeByte((unsigned char)ofGetFrameNum());
+                        devices[j].writeByte('\n');
+                        std::this_thread::sleep_for( std::chrono::seconds{(long)0.01});
+                        
                         // Read all bytes from the devices;
                         std::vector<uint8_t> buffer;
                         buffer = devices[j].readBytesUntil(); //TODO: find out device range and size for buffer properly
@@ -117,9 +114,8 @@ void ofApp::update(){
                         // Convert string and set array of values
                         std::vector<int> tempVector = convertStrtoVec(receivedData[j]);
                         deviceData[j].deviceValues = tempVector;
-                        deviceData[j].numberOfSensors = deviceData[j].deviceValues.size();
-                        
-                        if (deviceData[j].bSetupComplete){
+                        if (tempVector.size() == deviceData[j].numberOfSensors){
+                            // good to continue
                             updateDeltaValues(j, deviceData[j].deviceValues, deviceData[j].lastDeviceValues);
                             updateMinMaxValues(j, deviceData[j].deviceValues);
                             
@@ -135,15 +131,17 @@ void ofApp::update(){
                                     //outputDeviceValueOSC(j, k);
                                 }
                             }
+                            
+                            // Set next lastDeviceValue
+                            deviceData[j].lastDeviceValues = deviceData[j].deviceValues;
                         } else {
-                            ofLogError("ofApp::update") << "Setup state issue.";
+                            // had a read error and resetting for setup check
+                            setupDevice(j);
                         }
-                    // Set next lastDeviceValue
-                    deviceData[j].lastDeviceValues = deviceData[j].deviceValues;
                     
-                    // Send next message of current frame
-                    devices[j].writeByte((unsigned char)ofGetFrameNum());
-                    devices[j].writeByte('\n');
+//                    // Send next message of current frame
+//                    devices[j].writeByte((unsigned char)ofGetFrameNum());
+//                    devices[j].writeByte('\n');
                     }
                 }
             }
@@ -162,6 +160,7 @@ std::vector<int> ofApp::updateDeltaValues(int deviceID, std::vector<int> value, 
             delta[j] = value[j] - lastValue[j];
         }
     } else {
+        setupDevice(deviceID);
         ofLogError("Update Delta: ") << "Mismatched sizes.";
     }
     return delta;
@@ -178,6 +177,7 @@ void ofApp::updateMinMaxValues(int deviceID, std::vector<int> value){
             }
         }
     } else {
+        setupDevice(deviceID);
         ofLogError("Update MinMax: ") << "Mismatched sizes.";
     }
 }
