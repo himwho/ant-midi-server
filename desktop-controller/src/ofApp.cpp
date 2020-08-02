@@ -47,11 +47,9 @@ void ofApp::setup(){
         deviceData.resize(numberOfConnectedDevices);
         receivedData.resize(numberOfConnectedDevices);
         std::cout << "< Array of Devices" << std::endl;
-        setupDevices(0);
         for (int mult = 0; mult < 3; mult++){
-            for (int numDevices = 0; numDevices < numberOfConnectedDevices; numDevices++){
-                setupDevices(numDevices);
-                std::this_thread::sleep_for( std::chrono::seconds{(long)0.25});
+            for (int deviceID = 0; deviceID < numberOfConnectedDevices; deviceID++){
+                setupDevice(deviceID);
             }
         }
         bInitialSetupComplete = true;
@@ -65,7 +63,7 @@ void ofApp::setup(){
     ofLogNotice("ofApp::setup") << "OSC Port: " << PORT;
 }
 
-void ofApp::setupDevices(int deviceID){
+void ofApp::setupDevice(int deviceID){
     // Initial setup for min/max values per device
     // Send next message of current frame
     devices[deviceID].writeByte((unsigned char)ofGetFrameNum());
@@ -122,7 +120,7 @@ void ofApp::update(){
                         deviceData[j].numberOfSensors = deviceData[j].deviceValues.size();
                         
                         if (deviceData[j].bSetupComplete){
-                            deviceData[j].deltaValues = updateDeltaValues(deviceData[j].deviceValues, deviceData[j].lastDeviceValues);
+                            updateDeltaValues(j, deviceData[j].deviceValues, deviceData[j].lastDeviceValues);
                             updateMinMaxValues(j, deviceData[j].deviceValues);
                             
                             for (int k = 0; k < deviceData[j].numberOfSensors; k++){
@@ -155,10 +153,10 @@ void ofApp::update(){
     }
 }
 
-std::vector<int> ofApp::updateDeltaValues(std::vector<int> value, std::vector<int> lastValue){
+std::vector<int> ofApp::updateDeltaValues(int deviceID, std::vector<int> value, std::vector<int> lastValue){
     std::vector<int> delta;
     // Check that the size of vectors match otherwise skip this for safety
-    if (value.size() == lastValue.size()){
+    if (value.size() == deviceData[deviceID].numberOfSensors){
         delta.resize(value.size());
         for (std::size_t j = 0; j < value.size(); j++) {
             delta[j] = value[j] - lastValue[j];
@@ -192,8 +190,6 @@ void ofApp::outputDeviceValueOSC(int deviceID, int sensorID){
     int inputValue = deviceData[deviceID].deviceValues[sensorID];
     int inputMin = deviceData[deviceID].deviceValuesMin[sensorID];
     int inputMax = deviceData[deviceID].deviceValuesMax[sensorID];
-    int inputDelta = deviceData[deviceID].deltaValues[sensorID];
-    int inputLastValue = deviceData[deviceID].lastDeviceValues[sensorID];
 
     fpitch = ofMap(inputValue, inputMin, inputMax, 42, 100, true);
     fvelocity = ofMap(inputValue, inputMin, inputMax, 0, 127, true);
