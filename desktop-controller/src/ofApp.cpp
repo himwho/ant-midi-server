@@ -56,11 +56,6 @@ void ofApp::setup(){
     } else {
         ofLogNotice("ofApp::setup") << "No devices connected.";
     }
-    
-    // open an outgoing connection to HOST:PORT
-    sender.setup(HOST, PORT);
-    ofLogNotice("ofApp::setup") << "OSC Host: " << HOST;
-    ofLogNotice("ofApp::setup") << "OSC Port: " << PORT;
 }
 
 void ofApp::setupDevice(int deviceID){

@@ -2,14 +2,7 @@
 
 #include "ofMain.h"
 #include "ofxSerial.h"
-#include "ofxOsc.h"
 #include "OSCPlayer.h"
-
-// send host (aka ip address)
-#define HOST "ec2-3-94-213-186.compute-1.amazonaws.com"
-
-/// send port
-#define PORT 9998
 
 class ofApp : public ofBaseApp{
 

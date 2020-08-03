@@ -13,8 +13,14 @@
 #include "ofxOsc.h"
 #include <atomic>
 
+// send host (aka ip address)
+#define HOST "ec2-3-94-213-186.compute-1.amazonaws.com"
+
+/// send port
+#define PORT 9998
+
 class OSCPlayerObject: public ofThread{
-public:
+public:    
     bool playing;
     bool played;
     int deviceId, sensorId, value, lastvalue, valuemin, valuemax, msBPM, chan;
@@ -22,6 +28,8 @@ public:
     
     OSCPlayerObject(){
         playing = false;
+        // open an outgoing connection to HOST:PORT
+        sender.setup(HOST, PORT);
     }
     
     ~OSCPlayerObject(){
@@ -89,6 +97,7 @@ public:
         int msHoldNote = std::abs(value - lastvalue) * msBPM;
         oscNoteOff(deviceId, sensorId, msHoldNote, chan, pitch);
         played = true;
+        stop();
     }
 };
 
