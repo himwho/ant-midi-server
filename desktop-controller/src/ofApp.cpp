@@ -120,13 +120,14 @@ void ofApp::update(){
                             for (int k = 0; k < deviceData[j].numberOfSensors; k++){
                                 if (std::abs(deviceData[j].deltaValues[k]) > 10){
                                     std::cout << "BANG: 10 | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
-                                    outputDeviceValueOSC(j, k);
+                                    oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
+                                    oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, 1);
                                 } else if (std::abs(deviceData[j].deltaValues[k]) > 5){
                                     std::cout << "BANG: 5  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
-                                    outputDeviceValueOSC(j, k);
+                                    oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
+                                    oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, 1);
                                 } else if (std::abs(deviceData[j].deltaValues[k]) >  3){
                                     std::cout << "BANG: 3  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
-                                    //outputDeviceValueOSC(j, k);
                                 }
                             }
                             // Set next lastDeviceValue
@@ -176,53 +177,6 @@ void ofApp::updateMinMaxValues(int deviceID, std::vector<int> value){
         setupDevice(deviceID);
         ofLogError("Update MinMax: ") << "Mismatched sizes.";
     }
-}
-
-void ofApp::outputDeviceValueOSC(int deviceID, int sensorID){
-    // TODO: Set note length and bpm
-    
-    // Locally set the pitch and velocity of the bang from the input device/sensor
-    float fpitch, fvelocity;
-    int inputValue = deviceData[deviceID].deviceValues[sensorID];
-    int inputMin = deviceData[deviceID].deviceValuesMin[sensorID];
-    int inputMax = deviceData[deviceID].deviceValuesMax[sensorID];
-
-    fpitch = ofMap(inputValue, inputMin, inputMax, 42, 100, true);
-    fvelocity = ofMap(inputValue, inputMin, inputMax, 0, 127, true);
-    int pitch = (int) fpitch;
-    int velocity = (int) fvelocity;
-
-    // Send received byte via OSC to server
-    ofxOscMessage m;
-    m.setAddress("/device" + to_string(deviceID));
-    int channel = 1;    
-    std::vector<unsigned char> rawMessage;
-    rawMessage.push_back(MIDI_NOTE_ON+(channel-1));
-    rawMessage.push_back(pitch);
-    rawMessage.push_back(velocity);
-    m.addInt32Arg(rawMessage[0]);
-    m.addInt32Arg(rawMessage[1]);
-    m.addInt32Arg(rawMessage[2]);
-    sender.sendMessage(m, false);
-    
-    oscNoteOff(deviceID, sensorID, 0.25, channel, pitch);
-}
-
-void ofApp::oscNoteOff(int deviceID, int sensorID, float seconds, int channel, int pitch){
-    // Delay for `seconds`
-    std::this_thread::sleep_for( std::chrono::seconds{(long)seconds});
-    
-    // Send stop message
-    ofxOscMessage m;
-    m.setAddress("/device" + to_string(deviceID));
-    std::vector<unsigned char> rawMessage;
-    rawMessage.push_back(MIDI_NOTE_OFF+(channel-1));
-    rawMessage.push_back(pitch);
-    rawMessage.push_back(0);
-    m.addInt32Arg(rawMessage[0]);
-    m.addInt32Arg(rawMessage[1]);
-    m.addInt32Arg(rawMessage[2]);
-    sender.sendMessage(m, false);
 }
 
 std::vector<int> ofApp::convertStrtoVec(string str){

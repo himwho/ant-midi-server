@@ -3,6 +3,7 @@
 #include "ofMain.h"
 #include "ofxSerial.h"
 #include "ofxOsc.h"
+#include "OSCPlayer.h"
 
 // send host (aka ip address)
 #define HOST "ec2-3-94-213-186.compute-1.amazonaws.com"
@@ -52,11 +53,10 @@ class ofApp : public ofBaseApp{
         void setupDevice(int deviceID);
         void updateDeltaValues(int deviceID, std::vector<int> value, std::vector<int> lastValue);
         void updateMinMaxValues(int deviceID, std::vector<int> value);
-        void outputDeviceValueOSC(int deviceID, int sensorID);
-        void oscNoteOff(int deviceID, int sensorID, float seconds, int channel, int pitch);
         std::vector<int> convertStrtoVec(string str);
         float scale(float in, float inMin, float inMax, float outMin, float outMax);
 
         // OSC SETUP
-        ofxOscSender sender;        
+        ofxOscSender sender;
+        std::vector<unique_ptr<OSCPlayerObject>> oscPlayers;
 };
