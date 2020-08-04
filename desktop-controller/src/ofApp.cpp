@@ -131,6 +131,11 @@ void ofApp::update(){
                             // had a read error and resetting for setup check
                             setupDevice(j);
                         }
+                        for (int livePlayers = 0; livePlayers < oscPlayers.size(); livePlayers++){
+                            if (oscPlayers[livePlayers]->played){
+                                oscPlayers.erase(oscPlayers.begin() + livePlayers);
+                            }
+                        }
                     }
                 }
             }
