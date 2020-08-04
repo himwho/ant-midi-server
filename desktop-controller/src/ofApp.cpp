@@ -136,11 +136,11 @@ void ofApp::update(){
                                 if (std::abs(deviceData[j].deltaValues[k]) > 10){
                                     std::cout << "BANG: 10 | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
                                     oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
-                                    oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, 1);
+                                    oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, j+1);
                                 } else if (std::abs(deviceData[j].deltaValues[k]) > 5){
                                     std::cout << "BANG: 5  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
                                     oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
-                                    oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, 1);
+                                    oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, j+1);
                                 } else if (std::abs(deviceData[j].deltaValues[k]) >  3){
                                     std::cout << "BANG: 3  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
                                 }
@@ -225,6 +225,11 @@ float ofApp::scale(float in, float inMin, float inMax, float outMin, float outMa
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+    // Set background video input
+    ofSetHexColor(0xffffff);
+    vidGrabber.draw(0, ofGetHeight()-480);
+    videoTexture.draw(20 + camWidth, 20, camWidth, camHeight);
+    
     for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {
         ofSetColor(255, 255, 255); //white
         ofDrawBitmapStringHighlight("Ants found on port:  " + devices[j].port(), 20, (j * 20) + 20);
@@ -246,9 +251,6 @@ void ofApp::draw(){
             }
         }
     }
-    ofSetHexColor(0xffffff);
-    vidGrabber.draw(0, 260);
-    videoTexture.draw(20 + camWidth, 200, camWidth, camHeight);
     
     ofDrawBitmapStringHighlight("FPS: " + std::to_string(ofGetFrameRate()), 20, ofGetHeight() - 20);
     ofDrawBitmapStringHighlight("Frame Number: " + std::to_string(ofGetFrameNum()), 20, ofGetHeight() - 40);
