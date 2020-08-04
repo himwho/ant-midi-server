@@ -13,17 +13,17 @@ Dockerized server for listening to LAN MIDI and broadcasting it to WAN
 Server listens for messages via OSC and sends them to any connecting client via HTTP
 
 ## TODO List
-- parse seperate input devices for multichannel MIDI
 - stylize the web component
-- cleanup the max patch
-- design arduino patch to output OSC directly
+- js client should parse midi channels separately
+- js client should dispaly video from DC
+- js client parse and handle security seed
 
 ## Notes
 Moving OSC handling to arduino controller side may be an issue due to lack of multithreading already for parsing sensors
 
-usbmodem14601 = hab001 = Brown Camponotus P. Hab
-usbmodem1434301 = hab002 = Clear Camponotus P. Hab
-usbmodem = hab003 = Tan Camponotus P. Hab
+usbmodem146101  = hab001 = 11x tan Camponotus P. Hab
+usbmodem1464201 = hab002 = 6x Clear Camponotus P. Hab
+usbmodem1464301 = hab003 = 6x Brown Camponotus P. Hab
 
 ## Ant Journal
 I originally chose ants for this thinking they would be easy to handle and grow into large numbers making them ideal for entropy and synthesizing perceived randomness. It turns out its very challenging to get a queen ant to properly pass the foundling stage and grow into a sustaining colony. Below will be some notes and issues I did not expect more specific to this project.
