@@ -10,9 +10,7 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
 
-    <div>
-      <pre id="seedx" style="position:fixed;top:10px;left:10px;"></pre>
-    </div>
+    <pre id="seedx" style="position:fixed;top:10px;left:10px;"></pre>
 
     <div class="main-container">
 
@@ -55,7 +53,7 @@
 
       socket.on('seed', function(data) {
         var seedwindow = document.getElementById('seedx');
-        seedwindow.innerHTML = data.seedx;
+        seedwindow.innerHTML = 'SEED: ' + data.seedx;
       });
 
       function start_scroll_down() { 
