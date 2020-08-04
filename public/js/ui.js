@@ -51,9 +51,7 @@ function createSection( label, x, y, width, height ) {
 
 function setupSynthUI() {
 	synthBox = document.getElementById("synthbox");
-
 	var midi = createSection( "MIDI OUTPUT", 0, 0, 100, 100 );	
-	//midi.appendChild( createDropdown( "midiIn", "MIDI Input", 280, 15, ["-no MIDI-"], 0, selectMIDIIn ) );
 	midi.appendChild( createDropdown( "midiOut", "", 0, 0, ["-no MIDI-"], 0, selectMIDIOut ) );
   synthBox.appendChild( midi );
 } 

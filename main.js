@@ -38,27 +38,25 @@ var osc_udp_server = dgram.createSocket('udp4', function(msg, rinfo) {
 });
 
 var security_udp_server = dgram.createSocket('udp4', function(msg, rinfo) {
-  var msg;
   try {
     security_udp_server.on('message', (msg, rinfo) => {
-      console.log(`server got: ${msg} from ${rinfo.address}:${rinfo.port}`);
+      //console.log(`server got: ${msg} from ${rinfo.address}:${rinfo.port}`);
+      //console.log(msg);
+      var message = msg;
+      // store the remote ip receiving OSC
+      remote_osc_ip = rinfo.address;
+
+      // pipe collected message to client's browser via new socket
+      io.emit('seed', {
+        seedx: parseInt(message) || 0
+      });
+      io.emit('internal', {
+        seedx: parseInt(message) || 0
+      });
     });
-    console.log(msg);
   } catch(err) {
     return console.log('Could not decode Security Seed');
   }
-
-  // store the remote ip receiving OSC
-  remote_osc_ip = rinfo.address;
-
-  // pipe collected message to client's browser via new socket
-  io.emit('seed', {
-    x: parseString(msg.args[0].value) || 0
-  });
-  io.emit('internal', {
-    x: parseString(msg.args[0].value) || 0
-  });
-
 });
 
 osc_udp_server.bind(9998);
