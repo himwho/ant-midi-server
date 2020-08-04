@@ -56,6 +56,26 @@ void ofApp::setup(){
     } else {
         ofLogNotice("ofApp::setup") << "No devices connected.";
     }
+    camWidth = 640;  // try to grab at this size.
+    camHeight = 480;
+
+    //get back a list of devices.
+    vector<ofVideoDevice> cameras = vidGrabber.listDevices();
+
+    for(size_t i = 0; i < cameras.size(); i++){
+        if(cameras[i].bAvailable){
+            //log the device
+            ofLogNotice() << cameras[i].id << ": " << cameras[i].deviceName;
+        }else{
+            //log the device and note it as unavailable
+            ofLogNotice() << cameras[i].id << ": " << cameras[i].deviceName << " - unavailable ";
+        }
+    }
+
+    vidGrabber.setDeviceID(0);
+    vidGrabber.setDesiredFrameRate(60);
+    vidGrabber.initGrabber(camWidth, camHeight);
+    ofSetVerticalSync(true);
 }
 
 void ofApp::setupDevice(int deviceID){
@@ -143,6 +163,13 @@ void ofApp::update(){
     } catch (const std::exception& exc) {
         ofLogError("ofApp::update") << exc.what();
     }
+    ofBackground(100, 100, 100);
+    vidGrabber.update();
+
+    if(vidGrabber.isFrameNew()){
+        ofPixels & pixels = vidGrabber.getPixels();
+        videoTexture.loadData(pixels);
+    }
 }
 
 void ofApp::updateDeltaValues(int deviceID, std::vector<int> value, std::vector<int> lastValue){
@@ -219,6 +246,9 @@ void ofApp::draw(){
             }
         }
     }
+    ofSetHexColor(0xffffff);
+    vidGrabber.draw(0, 260);
+    videoTexture.draw(20 + camWidth, 200, camWidth, camHeight);
     
     ofDrawBitmapStringHighlight("FPS: " + std::to_string(ofGetFrameRate()), 20, ofGetHeight() - 20);
     ofDrawBitmapStringHighlight("Frame Number: " + std::to_string(ofGetFrameNum()), 20, ofGetHeight() - 40);

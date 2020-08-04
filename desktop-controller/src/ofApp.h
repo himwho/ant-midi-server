@@ -3,6 +3,7 @@
 #include "ofMain.h"
 #include "ofxSerial.h"
 #include "OSCPlayer.h"
+#include "VideoHandler.h"
 
 class ofApp : public ofBaseApp{
 
@@ -52,4 +53,12 @@ class ofApp : public ofBaseApp{
 
         // OSC SETUP
         std::vector<unique_ptr<OSCPlayerObject>> oscPlayers;
+    
+        //VIDEO SETUP
+        VideoHandler video;
+        ofVideoGrabber vidGrabber;
+        ofPixels videoInverted;
+        ofTexture videoTexture;
+        int camWidth;
+        int camHeight;
 };
