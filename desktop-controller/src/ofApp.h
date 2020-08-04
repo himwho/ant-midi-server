@@ -4,6 +4,7 @@
 #include "ofxSerial.h"
 #include "OSCPlayer.h"
 #include "VideoHandler.h"
+#include "ofxNetwork.h"
 
 class ofApp : public ofBaseApp{
 
@@ -44,21 +45,27 @@ class ofApp : public ofBaseApp{
         };
     
         std::vector<AntDevice> deviceData;
-
         void setupDevice(int deviceID);
         void updateDeltaValues(int deviceID, std::vector<int> value, std::vector<int> lastValue);
         void updateMinMaxValues(int deviceID, std::vector<int> value);
-        std::vector<int> convertStrtoVec(string str);
+    
+        // UTILITIES
+        std::vector<int> convertStrtoVec(std::string str);
+        std::string removeSpaces(std::string input);
         float scale(float in, float inMin, float inMax, float outMin, float outMax);
 
         // OSC SETUP
         std::vector<unique_ptr<OSCPlayerObject>> oscPlayers;
     
-        //VIDEO SETUP
+        // VIDEO SETUP
         VideoHandler video;
         ofVideoGrabber vidGrabber;
         ofPixels videoInverted;
         ofTexture videoTexture;
         int camWidth;
         int camHeight;
+    
+        // SECURITY SETUP
+        ofxUDPManager udpConnection;
+        std::vector<string> securitySeed;
 };

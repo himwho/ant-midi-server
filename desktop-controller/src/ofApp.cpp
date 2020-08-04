@@ -46,6 +46,7 @@ void ofApp::setup(){
         // create 'n' number of device structs
         deviceData.resize(numberOfConnectedDevices);
         receivedData.resize(numberOfConnectedDevices);
+        securitySeed.resize(numberOfConnectedDevices);
         std::cout << "< Array of Devices" << std::endl;
         for (int mult = 0; mult < 3; mult++){
             for (int deviceID = 0; deviceID < numberOfConnectedDevices; deviceID++){
@@ -76,6 +77,11 @@ void ofApp::setup(){
     vidGrabber.setDesiredFrameRate(60);
     vidGrabber.initGrabber(camWidth, camHeight);
     ofSetVerticalSync(true);
+    
+    // SECURITY UDP
+    udpConnection.Create();
+    udpConnection.Connect(HOST, 9995);
+    udpConnection.SetNonBlocking(true);
 }
 
 void ofApp::setupDevice(int deviceID){
@@ -147,6 +153,9 @@ void ofApp::update(){
                             }
                             // Set next lastDeviceValue
                             deviceData[j].lastDeviceValues = deviceData[j].deviceValues;
+                            // Send out Security Seed
+                            securitySeed[j] = removeSpaces(receivedData[j]);
+                            udpConnection.Send(securitySeed[j].c_str(), securitySeed[j].length());
                         } else {
                             // had a read error and resetting for setup check
                             setupDevice(j);
@@ -206,7 +215,7 @@ void ofApp::updateMinMaxValues(int deviceID, std::vector<int> value){
     }
 }
 
-std::vector<int> ofApp::convertStrtoVec(string str){
+std::vector<int> ofApp::convertStrtoVec(std::string str){
     std::stringstream ss(str);
     std::vector<int> vector;
 
@@ -216,6 +225,11 @@ std::vector<int> ofApp::convertStrtoVec(string str){
         vector.push_back(tmp);
     }
     return vector;
+}
+
+std::string ofApp::removeSpaces(std::string input){
+    input.erase(std::remove(input.begin(), input.end(), ' '), input.end());
+    return input;
 }
 
 float ofApp::scale(float in, float inMin, float inMax, float outMin, float outMax){
