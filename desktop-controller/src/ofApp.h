@@ -50,6 +50,5 @@ class ofApp : public ofBaseApp{
         float scale(float in, float inMin, float inMax, float outMin, float outMax);
 
         // OSC SETUP
-        ofxOscSender sender;
         std::vector<unique_ptr<OSCPlayerObject>> oscPlayers;
 };

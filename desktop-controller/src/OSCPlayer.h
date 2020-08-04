@@ -14,7 +14,7 @@
 #include <atomic>
 
 // send host (aka ip address)
-#define HOST "ec2-3-94-213-186.compute-1.amazonaws.com"
+#define HOST "3.94.213.186"
 
 /// send port
 #define PORT 9998
