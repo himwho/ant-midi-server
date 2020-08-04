@@ -80,7 +80,7 @@ void ofApp::setup(){
     
     // SECURITY UDP
     udpConnection.Create();
-    udpConnection.Connect(HOST, 9995);
+    udpConnection.Connect(HOST, SECPORT);
     udpConnection.SetNonBlocking(true);
 }
 

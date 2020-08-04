@@ -13,11 +13,12 @@
 #include "ofxOsc.h"
 #include <atomic>
 
-// send host (aka ip address)
+// SERVER HOST (aka ip address)
 #define HOST "3.94.213.186"
-
-/// send port
-#define PORT 9998
+// OSC PORT
+#define OSCPORT 9998
+// SECURITY PORT
+#define SECPORT 9995
 
 class OSCPlayerObject: public ofThread{
 public:    
@@ -29,7 +30,7 @@ public:
     OSCPlayerObject(){
         playing = false;
         // open an outgoing connection to HOST:PORT
-        sender.setup(HOST, PORT);
+        sender.setup(HOST, OSCPORT);
     }
     
     ~OSCPlayerObject(){
