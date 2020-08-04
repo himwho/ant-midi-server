@@ -279,3 +279,12 @@ void ofApp::gotMessage(ofMessage msg){
 void ofApp::dragEvent(ofDragInfo dragInfo){
 
 }
+
+//--------------------------------------------------------------
+void ofApp::exit(){
+    for (int i = 0; i < oscPlayers.size(); i++){
+        oscPlayers[i]->stopThread();
+        oscPlayers[i]->stop();
+    }
+    oscPlayers.clear();
+}
