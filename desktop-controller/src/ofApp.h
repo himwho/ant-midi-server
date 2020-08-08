@@ -32,25 +32,29 @@ class ofApp : public ofBaseApp{
         std::vector<std::string> receivedData;
         std::vector<int> foundDevicesArray;
 
+        // UTILITY FUNCTIONS
+        std::vector<int> convertStrtoVec(string str);
+        float scale(float in, float inMin, float inMax, float outMin, float outMax);
+        
         // DEVICE STRUCT
         struct AntDevice {
             bool bSetupComplete = false;
             int numberOfSensors;
+            int processIndex = 1;
             std::vector<int> deviceValues;
             std::vector<int> lastDeviceValues;
             std::vector<int> deviceValuesMin;
             std::vector<int> deviceValuesMax;
             std::vector<int> deltaValues;
+            std::vector<int> summedValues;
+            std::map<char, int> digit_frequency;
         };
     
         std::vector<AntDevice> deviceData;
-
         void setupDevice(int deviceID);
-        void updateDeltaValues(int deviceID, std::vector<int> value, std::vector<int> lastValue);
-        void updateMinMaxValues(int deviceID, std::vector<int> value);
-        std::vector<int> convertStrtoVec(string str);
-        float scale(float in, float inMin, float inMax, float outMin, float outMax);
-
+        void updateDeltaValues(int deviceID, std::vector<int> values, std::vector<int> lastValues);
+        void updateMinMaxValues(int deviceID, std::vector<int> values);
+    
         // OSC SETUP
         std::vector<unique_ptr<OSCPlayerObject>> oscPlayers;
     

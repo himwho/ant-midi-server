@@ -8,6 +8,7 @@
 #include <thread>
 #include <future>
 #include <math.h>
+#include <cctype>
 #include "ofxMidiConstants.h"
 
 //--------------------------------------------------------------
@@ -129,7 +130,6 @@ void ofApp::update(){
                         std::vector<int> tempVector = convertStrtoVec(receivedData[j]);
                         deviceData[j].deviceValues = tempVector;
                         if (tempVector.size() == deviceData[j].numberOfSensors){
-                            // good to continue
                             updateDeltaValues(j, deviceData[j].deviceValues, deviceData[j].lastDeviceValues);
                             updateMinMaxValues(j, deviceData[j].deviceValues);
                             for (int k = 0; k < deviceData[j].numberOfSensors; k++){
@@ -172,32 +172,48 @@ void ofApp::update(){
     }
 }
 
-void ofApp::updateDeltaValues(int deviceID, std::vector<int> value, std::vector<int> lastValue){
+void ofApp::updateDeltaValues(int deviceID, std::vector<int> values, std::vector<int> lastValues){
     // Check that the size of vectors match otherwise skip this for safety
-    if (value.size() == deviceData[deviceID].numberOfSensors){
+    if (values.size() == deviceData[deviceID].numberOfSensors){
         deviceData[deviceID].deviceValues.resize(deviceData[deviceID].numberOfSensors);
         deviceData[deviceID].lastDeviceValues.resize(deviceData[deviceID].numberOfSensors);
         deviceData[deviceID].deltaValues.resize(deviceData[deviceID].numberOfSensors);
-        for (std::size_t j = 0; j < value.size(); j++) {
-            deviceData[deviceID].deltaValues[j] = value[j] - lastValue[j];
+        for (int k = 0; k < values.size(); k++) {
+            deviceData[deviceID].deltaValues[k] = values[k] - lastValues[k];
+            std::stringstream ss;
+            ss << values[k];
+            std::string str = ss.str();
+            if(isdigit(str[0]))
+            {
+                ++deviceData[deviceID].digit_frequency[str[0]];
+            }
+            else if(isdigit(str[1]))
+            {
+                ++deviceData[deviceID].digit_frequency[str[1]];
+            }
+            std::map<char, int>::iterator it;
+            for(it = deviceData[deviceID].digit_frequency.begin(); it != deviceData[deviceID].digit_frequency.end(); ++it) {
+                std::cout << "Number " << it->first << " occurred " << it->second << " time(s).\n";
+            }
         }
+        deviceData[deviceID].processIndex++;
     } else {
         setupDevice(deviceID);
         ofLogError("Update Delta: ") << "Mismatched sizes.";
     }
 }
 
-void ofApp::updateMinMaxValues(int deviceID, std::vector<int> value){
+void ofApp::updateMinMaxValues(int deviceID, std::vector<int> values){
     // Check that the size of vectors match otherwise skip this for safety
-    if (value.size() == deviceData[deviceID].numberOfSensors){
+    if (values.size() == deviceData[deviceID].numberOfSensors){
         deviceData[deviceID].deviceValuesMin.resize(deviceData[deviceID].numberOfSensors);
         deviceData[deviceID].deviceValuesMax.resize(deviceData[deviceID].numberOfSensors);
-        for (int k = 0; k < value.size(); k++) {
-            if (value[k] > deviceData[deviceID].deviceValuesMax[k]){
-                deviceData[deviceID].deviceValuesMax[k] = value[k];
+        for (int k = 0; k < values.size(); k++) {
+            if (values[k] > deviceData[deviceID].deviceValuesMax[k]){
+                deviceData[deviceID].deviceValuesMax[k] = values[k];
             }
-            if (value[k] < deviceData[deviceID].deviceValuesMin[k]){
-                deviceData[deviceID].deviceValuesMin[k] = value[k];
+            if (values[k] < deviceData[deviceID].deviceValuesMin[k]){
+                deviceData[deviceID].deviceValuesMin[k] = values[k];
             }
         }
     } else {
@@ -239,7 +255,7 @@ void ofApp::draw(){
         s = s.substr(0, s.length()-1);
         ofDrawBitmapString(deltas.str().c_str(), 20, (j * 20) + 100);
         ofDrawBitmapStringHighlight("Number of senors: " + std::to_string(deviceData[j].numberOfSensors), ofGetWidth()/2, (j * 20) + 100);
-        
+
         for (std::size_t k = 0; k < deviceData[j].numberOfSensors; k++){
             ofSetColor(255, 255, 255); //white
             ofDrawCircle((k * 25) + 20, (j * 20) + 200, 5); //exterior
@@ -251,7 +267,7 @@ void ofApp::draw(){
             }
         }
     }
-    
+
     ofDrawBitmapStringHighlight("FPS: " + std::to_string(ofGetFrameRate()), 20, ofGetHeight() - 20);
     ofDrawBitmapStringHighlight("Frame Number: " + std::to_string(ofGetFrameNum()), 20, ofGetHeight() - 40);
     ofDrawBitmapStringHighlight("Number of Threads: " + std::to_string(oscPlayers.size()), 20, ofGetHeight() - 60);
