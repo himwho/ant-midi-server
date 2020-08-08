@@ -134,15 +134,15 @@ void ofApp::update(){
                             updateMinMaxValues(j, deviceData[j].deviceValues);
                             for (int k = 0; k < deviceData[j].numberOfSensors; k++){
                                 if (std::abs(deviceData[j].deltaValues[k]) > 10){
-                                    std::cout << "BANG: 10 | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
+                                    //std::cout << "BANG: 10 | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
                                     oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
                                     oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, j+1);
                                 } else if (std::abs(deviceData[j].deltaValues[k]) > 5){
-                                    std::cout << "BANG: 5  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
+                                    //std::cout << "BANG: 5  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
                                     oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
                                     oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, j+1);
                                 } else if (std::abs(deviceData[j].deltaValues[k]) >  3){
-                                    std::cout << "BANG: 3  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
+                                    //std::cout << "BANG: 3  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
                                 }
                             }
                             // Set next lastDeviceValue
@@ -196,7 +196,6 @@ void ofApp::updateDeltaValues(int deviceID, std::vector<int> values, std::vector
                 std::cout << "Number " << it->first << " occurred " << it->second << " time(s).\n";
             }
         }
-        deviceData[deviceID].processIndex++;
     } else {
         setupDevice(deviceID);
         ofLogError("Update Delta: ") << "Mismatched sizes.";

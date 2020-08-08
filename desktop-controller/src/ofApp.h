@@ -40,7 +40,6 @@ class ofApp : public ofBaseApp{
         struct AntDevice {
             bool bSetupComplete = false;
             int numberOfSensors;
-            int processIndex = 1;
             std::vector<int> deviceValues;
             std::vector<int> lastDeviceValues;
             std::vector<int> deviceValuesMin;
