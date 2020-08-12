@@ -55,10 +55,6 @@ class ofApp : public ofBaseApp{
         std::vector<unique_ptr<OSCPlayerObject>> oscPlayers;
     
         //VIDEO SETUP
-        VideoHandler video;
         ofVideoGrabber vidGrabber;
-        ofPixels videoInverted;
-        ofTexture videoTexture;
-        int camWidth;
-        int camHeight;
+        std::vector<unique_ptr<VideoHandler>> videos;
 };

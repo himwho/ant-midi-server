@@ -56,9 +56,7 @@ void ofApp::setup(){
     } else {
         ofLogNotice("ofApp::setup") << "No devices connected.";
     }
-    camWidth = 640;  // try to grab at this size.
-    camHeight = 480;
-
+    
     //get back a list of devices.
     vector<ofVideoDevice> cameras = vidGrabber.listDevices();
 
@@ -66,16 +64,13 @@ void ofApp::setup(){
         if(cameras[i].bAvailable){
             //log the device
             ofLogNotice() << cameras[i].id << ": " << cameras[i].deviceName;
+            videos.push_back(move(unique_ptr<VideoHandler>(new VideoHandler)));
+            videos.back()->setCamIndex(i);
         }else{
             //log the device and note it as unavailable
             ofLogNotice() << cameras[i].id << ": " << cameras[i].deviceName << " - unavailable ";
         }
     }
-
-    vidGrabber.setDeviceID(0);
-    vidGrabber.setDesiredFrameRate(60);
-    vidGrabber.initGrabber(camWidth, camHeight);
-    ofSetVerticalSync(true);
 }
 
 void ofApp::setupDevice(int deviceID){
@@ -164,12 +159,6 @@ void ofApp::update(){
         ofLogError("ofApp::update") << exc.what();
     }
     ofBackground(100, 100, 100);
-    vidGrabber.update();
-
-    if(vidGrabber.isFrameNew()){
-        ofPixels & pixels = vidGrabber.getPixels();
-        videoTexture.loadData(pixels);
-    }
 }
 
 void ofApp::updateDeltaValues(int deviceID, std::vector<int> value, std::vector<int> lastValue){
@@ -227,8 +216,12 @@ float ofApp::scale(float in, float inMin, float inMax, float outMin, float outMa
 void ofApp::draw(){
     // Set background video input
     ofSetHexColor(0xffffff);
-    vidGrabber.draw(0, ofGetHeight()-480);
-    videoTexture.draw(20 + camWidth, 20, camWidth, camHeight);
+    for (int i = 0; i < videos.size(); i++){
+        //videos[i]->image.draw(0 + (ofGetWidth()/(i)), ofGetHeight()-480, videos[i]->camWidth/(i+1), videos[i]->camHeight/(i+1));
+        videos[i]->update();
+        videos[i]->vidGrabber.draw(0, ofGetHeight()-480);
+        videos[i]->image.draw(20 + videos[i]->camWidth, 20, videos[i]->camWidth, videos[i]->camHeight);
+    }
     
     for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {
         ofSetColor(255, 255, 255); //white
@@ -251,10 +244,9 @@ void ofApp::draw(){
             }
         }
     }
-    
     ofDrawBitmapStringHighlight("FPS: " + std::to_string(ofGetFrameRate()), 20, ofGetHeight() - 20);
     ofDrawBitmapStringHighlight("Frame Number: " + std::to_string(ofGetFrameNum()), 20, ofGetHeight() - 40);
-    ofDrawBitmapStringHighlight("Number of Threads: " + std::to_string(oscPlayers.size()), 20, ofGetHeight() - 60);
+    ofDrawBitmapStringHighlight("Number of Threads: " + std::to_string(oscPlayers.size() + videos.size()), 20, ofGetHeight() - 60);
 }
 
 //--------------------------------------------------------------
@@ -319,4 +311,8 @@ void ofApp::exit(){
         oscPlayers[i]->stop();
     }
     oscPlayers.clear();
+    for (int i = 0; i < videos.size(); i++){
+        videos[i]->stop();
+    }
+    videos.clear();
 }

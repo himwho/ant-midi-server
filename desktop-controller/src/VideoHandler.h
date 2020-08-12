@@ -11,11 +11,14 @@
 #include "ofMain.h"
 #include "ofVideoGrabber.h"
 
-class VideoHandler: public ofThread{
+class VideoHandler {
 public:
     bool playing;
-    ofVideoGrabber cam;
+    ofVideoGrabber vidGrabber;
     ofImage image;
+    int camWidth = 640;  // try to grab at this size.
+    int camHeight = 480;
+    int camIndex;
     
     VideoHandler(){
         playing = false;
@@ -23,30 +26,32 @@ public:
     
     ~VideoHandler(){
         stop();
-        waitForThread(true);
+        vidGrabber.close();
     }
 
-    void stop(){
-        stopThread();
+    void setCamIndex(int camIndex){
+        this->camIndex = camIndex;
+        vidGrabber.setDeviceID(camIndex);
+        vidGrabber.setDesiredFrameRate(30);
+        vidGrabber.initGrabber(camWidth, camHeight);
+        ofSetVerticalSync(true);
+        playing = true;
     }
 
-    /// Everything in this function will happen in a different
-    /// thread which leaves the main thread completelty free for
-    /// other task;s.
-    void threadedFunction() {
-        // start
-        while(isThreadRunning()) {
-            cam.update();
-            if(cam.isFrameNew()){
-                //lock access
-                lock();
-                //load image
-                image.setFromPixels(cam.getPixels());
-                //unlock
-                unlock();
-            }
+    void update(){
+        vidGrabber.update();
+        if(vidGrabber.isFrameNew()){
+            //load image
+            image.setFromPixels(vidGrabber.getPixels());
         }
-        //done
+    }
+    
+    void draw(float x, float y){
+        
+    }
+    
+    void stop(){
+    
     }
 };
 #endif /* VideoHandler_h */
