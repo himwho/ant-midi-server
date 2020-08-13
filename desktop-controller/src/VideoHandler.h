@@ -10,6 +10,7 @@
 
 #include "ofMain.h"
 #include "ofVideoGrabber.h"
+#include "ofxOsc.h"
 
 class VideoHandler {
 public:
@@ -20,6 +21,10 @@ public:
     int camHeight = 480;
     int camIndex;
     
+    ofxOscSender sender;
+    std::string iphost;
+    int port;
+    
     VideoHandler(){
         playing = false;
     }
@@ -29,10 +34,14 @@ public:
         vidGrabber.close();
     }
 
-    void setCamIndex(int camIndex){
+    void setup(int camIndex, std::string host, int port){
+        this->iphost = host;
+        this->port = port;
+        sender.setup(HOST, PORT);
+        
         this->camIndex = camIndex;
         vidGrabber.setDeviceID(camIndex);
-        vidGrabber.setDesiredFrameRate(20);
+        vidGrabber.setDesiredFrameRate(15);
         vidGrabber.initGrabber(camWidth, camHeight);
         ofSetVerticalSync(true);
         playing = true;
@@ -43,6 +52,12 @@ public:
         if(vidGrabber.isFrameNew()){
             //load image
             image.setFromPixels(vidGrabber.getPixels());
+            
+            // Send received byte via OSC to server
+            ofxOscMessage m;
+            m.setAddress("/camera" + to_string(camIndex));
+            //m.addBlobArg(vidGrabber.getPixels());
+            //sender.sendMessage(m, false);
         }
     }
     

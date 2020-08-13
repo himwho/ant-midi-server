@@ -65,7 +65,7 @@ void ofApp::setup(){
             //log the device
             ofLogNotice() << cameras[i].id << ": " << cameras[i].deviceName;
             videos.push_back(move(unique_ptr<VideoHandler>(new VideoHandler)));
-            videos.back()->setCamIndex(i);
+            videos.back()->setup(i, "3.94.213.186", 10005 + i);
         }else{
             //log the device and note it as unavailable
             ofLogNotice() << cameras[i].id << ": " << cameras[i].deviceName << " - unavailable ";
@@ -221,10 +221,12 @@ void ofApp::draw(){
     while (columnStep < ofGetWidth()){
         int rowStep = ofGetHeight() - ((videos[0]->camHeight/2) * videos.size()/2); // Starting point for rows
         while (rowStep < ofGetHeight()){
-            videos[i]->update();
-            videos[i]->image.draw(columnStep, rowStep, videos[i]->camWidth/2, videos[i]->camHeight/2);
-            rowStep += videos[0]->camHeight/2;
-            i += 1;
+            if (i < videos.size()){
+                videos[i]->update();
+                videos[i]->image.draw(columnStep, rowStep, videos[i]->camWidth/2, videos[i]->camHeight/2);
+                rowStep += videos[0]->camHeight/2;
+                i += 1;
+            }
         }
         columnStep += videos[0]->camWidth/2;
     }
