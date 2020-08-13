@@ -216,11 +216,17 @@ float ofApp::scale(float in, float inMin, float inMax, float outMin, float outMa
 void ofApp::draw(){
     // Set background video input
     ofSetHexColor(0xffffff);
-    for (int i = 0; i < videos.size(); i++){
-        //videos[i]->image.draw(0 + (ofGetWidth()/(i)), ofGetHeight()-480, videos[i]->camWidth/(i+1), videos[i]->camHeight/(i+1));
-        videos[i]->update();
-        videos[i]->vidGrabber.draw(0, ofGetHeight()-480);
-        videos[i]->image.draw(20 + videos[i]->camWidth, 20, videos[i]->camWidth, videos[i]->camHeight);
+    int columnStep = 0; // Starting point for columns
+    int i = 0;
+    while (columnStep < ofGetWidth()){
+        int rowStep = ofGetHeight() - ((videos[0]->camHeight/2) * videos.size()/2); // Starting point for rows
+        while (rowStep < ofGetHeight()){
+            videos[i]->update();
+            videos[i]->image.draw(columnStep, rowStep, videos[i]->camWidth/2, videos[i]->camHeight/2);
+            rowStep += videos[0]->camHeight/2;
+            i += 1;
+        }
+        columnStep += videos[0]->camWidth/2;
     }
     
     for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {
@@ -246,7 +252,7 @@ void ofApp::draw(){
     }
     ofDrawBitmapStringHighlight("FPS: " + std::to_string(ofGetFrameRate()), 20, ofGetHeight() - 20);
     ofDrawBitmapStringHighlight("Frame Number: " + std::to_string(ofGetFrameNum()), 20, ofGetHeight() - 40);
-    ofDrawBitmapStringHighlight("Number of Threads: " + std::to_string(oscPlayers.size() + videos.size()), 20, ofGetHeight() - 60);
+    ofDrawBitmapStringHighlight("Number of Threads: " + std::to_string(oscPlayers.size()), 20, ofGetHeight() - 60);
 }
 
 //--------------------------------------------------------------

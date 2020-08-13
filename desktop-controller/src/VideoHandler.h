@@ -32,7 +32,7 @@ public:
     void setCamIndex(int camIndex){
         this->camIndex = camIndex;
         vidGrabber.setDeviceID(camIndex);
-        vidGrabber.setDesiredFrameRate(30);
+        vidGrabber.setDesiredFrameRate(20);
         vidGrabber.initGrabber(camWidth, camHeight);
         ofSetVerticalSync(true);
         playing = true;
