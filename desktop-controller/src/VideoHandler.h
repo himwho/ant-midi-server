@@ -17,6 +17,7 @@ public:
     bool playing;
     ofVideoGrabber vidGrabber;
     ofImage image;
+    
     int camWidth = 640;  // try to grab at this size.
     int camHeight = 480;
     int camIndex;
@@ -37,7 +38,7 @@ public:
     void setup(int camIndex, std::string host, int port){
         this->iphost = host;
         this->port = port;
-        sender.setup(HOST, PORT);
+        sender.setup(HOST, port);
         
         this->camIndex = camIndex;
         vidGrabber.setDeviceID(camIndex);
@@ -51,22 +52,23 @@ public:
         vidGrabber.update();
         if(vidGrabber.isFrameNew()){
             //load image
+            static unsigned long size;
             image.setFromPixels(vidGrabber.getPixels());
+            //image.resize(camWidth/4, camHeight/4);
+
+            ofBuffer cameraSendBuffer;
+            ofSaveImage(image.getPixelsRef(),cameraSendBuffer,OF_IMAGE_FORMAT_JPEG);
             
             // Send received byte via OSC to server
             ofxOscMessage m;
             m.setAddress("/camera" + to_string(camIndex));
-            //m.addBlobArg(vidGrabber.getPixels());
-            //sender.sendMessage(m, false);
+            m.addBlobArg(cameraSendBuffer);
+            sender.sendMessage(m, false);
         }
     }
     
-    void draw(float x, float y){
-        
-    }
-    
     void stop(){
-    
+
     }
 };
 #endif /* VideoHandler_h */

@@ -65,7 +65,7 @@ void ofApp::setup(){
             //log the device
             ofLogNotice() << cameras[i].id << ": " << cameras[i].deviceName;
             videos.push_back(move(unique_ptr<VideoHandler>(new VideoHandler)));
-            videos.back()->setup(i, "3.94.213.186", 10005 + i);
+            videos.back()->setup(i, HOST, 10005 + i);
         }else{
             //log the device and note it as unavailable
             ofLogNotice() << cameras[i].id << ": " << cameras[i].deviceName << " - unavailable ";
