@@ -23,7 +23,7 @@
 class OSCPlayerObject: public ofThread{
 public:    
     bool playing;
-    bool played;
+    bool played = false;
     int deviceId, sensorId, value, lastvalue, valuemin, valuemax, msBPM, chan;
     ofxOscSender sender;
     
@@ -35,7 +35,7 @@ public:
     
     ~OSCPlayerObject(){
         stop();
-        waitForThread(true);
+        waitForThread(false);
     }
     
     void outputDeviceValueOSC(int deviceID, int sensorID, int deviceValue, int lastDeviceValue, int deviceValueMin, int deviceValueMax, int bpm, int channel){

@@ -15,12 +15,12 @@
 void ofApp::setup(){
 #ifdef LOGSENSORS
     ofLogToFile("SensorLogs.txt", true);
-#define ofLogVerbose() ofLogVerbose() << ofGetTimestampString("[%Y-%m-%d %H:%M:%S.%i] ")
+#define ofLogNotice() ofLogNotice() << ofGetTimestampString("[%Y-%m-%d %H:%M:%S.%i] ")
 #endif
-    ofLogNotice("ofApp::setup") << "Connected Devices: ";
+    ofLogNotice() << "ofApp::setup" << "Connected Devices: ";
 
     for (auto& device: ofxIO::SerialDeviceUtils::listDevices()) {
-        ofLogNotice("ofApp::setup") << "\t" << device;
+        ofLogNotice() << "ofApp::setup" << "\t" << device;
     }
     
     std::vector<ofx::IO::SerialDeviceInfo> devicesInfo = ofx::IO::SerialDeviceUtils::listDevices();
@@ -39,12 +39,12 @@ void ofApp::setup(){
         for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {
             bool success = devices[j].setup(devicesInfo[foundDevicesArray[j]], 115200);
             if (success) {
-                ofLogNotice("ofApp::setup") << "Successfully setup " << devicesInfo[foundDevicesArray[j]];
+                ofLogNotice() << "ofApp::setup" << "Successfully setup " << devicesInfo[foundDevicesArray[j]];
             } else {
-                ofLogNotice("ofApp::setup") << "Unable to setup " << devicesInfo[foundDevicesArray[j]];
+                ofLogNotice() << "ofApp::setup" << "Unable to setup " << devicesInfo[foundDevicesArray[j]];
             }
         }
-        ofLogNotice("Number of Discovered Devices: ") << numberOfConnectedDevices << " Number Setup: " << devices.size();
+        ofLogNotice() << "Number of Discovered Devices: " << numberOfConnectedDevices << " Number Setup: " << devices.size();
         for (std::vector<int>::const_iterator i = foundDevicesArray.begin(); i != foundDevicesArray.end(); ++i){
             std::cout << *i << ' ';
         }
@@ -59,7 +59,7 @@ void ofApp::setup(){
         }
         bInitialSetupComplete = true;
     } else {
-        ofLogNotice("ofApp::setup") << "No devices connected.";
+        ofLogNotice() << "ofApp::setup" << "No devices connected.";
     }
     
     //get back a list of devices.
@@ -134,21 +134,21 @@ void ofApp::update(){
                             updateDeltaValues(j, deviceData[j].deviceValues, deviceData[j].lastDeviceValues);
                             updateMinMaxValues(j, deviceData[j].deviceValues);
                             for (int k = 0; k < deviceData[j].numberOfSensors; k++){
-                                if (std::abs(deviceData[j].deltaValues[k]) > 10){
-#ifndef FULLDEBUG
-                                    ofLogVerbose() << "BANG: 10 | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
+                                if (std::abs(deviceData[j].deltaValues[k]) > 15){
+#ifdef FULLDEBUG
+                                    ofLogNotice() << "BANG: 15 | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
 #endif
                                     oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
                                     oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, j+1);
-                                } else if (std::abs(deviceData[j].deltaValues[k]) > 5){
-#ifndef FULLDEBUG
-                                    ofLogVerbose() << "BANG: 5  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
+                                } else if (std::abs(deviceData[j].deltaValues[k]) > 8){
+#ifdef FULLDEBUG
+                                    ofLogNotice() << "BANG: 8  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
 #endif
                                     oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
                                     oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, j+1);
-                                } else if (std::abs(deviceData[j].deltaValues[k]) >  3){
-#ifndef FULLDEBUG
-                                    ofLogVerbose() << "BANG: 3  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
+                                } else if (std::abs(deviceData[j].deltaValues[k]) >  5){
+#ifdef FULLDEBUG
+                                    ofLogNotice() << "BANG: 5  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
 #endif
                                 }
                             }
@@ -168,7 +168,7 @@ void ofApp::update(){
             }
         }
     } catch (const std::exception& exc) {
-#ifndef FULLDEBUG
+#ifdef FULLDEBUG
         ofLogError("ofApp::update") << exc.what();
 #endif
     }
@@ -179,18 +179,15 @@ void ofApp::updateDeltaValues(int deviceID, std::vector<int> values, std::vector
     // Check that the size of vectors match otherwise skip this for safety
     if (values.size() == deviceData[deviceID].numberOfSensors){
         deviceData[deviceID].deviceValues.resize(deviceData[deviceID].numberOfSensors);
-#ifndef LOGSENSORVALUES
-        std::string tabbedValues;
-        for (int k = 0; k < values.size(); k++) {
-            tabbedValues += std::to_string(values[k]) + "\t";
-        }
-        ofLogVerbose() << tabbedValues;
-#endif
         deviceData[deviceID].lastDeviceValues.resize(deviceData[deviceID].numberOfSensors);
         deviceData[deviceID].deltaValues.resize(deviceData[deviceID].numberOfSensors);
-#ifndef LOGFNL
+        std::string tabbedValues;
         for (int k = 0; k < values.size(); k++) {
             deviceData[deviceID].deltaValues[k] = values[k] - lastValues[k];
+#ifdef LOGSENSORVALUES
+            tabbedValues += std::to_string(values[k]) + "\t";
+#endif
+#ifdef LOGFNL
             std::stringstream ss;
             ss << values[k];
             std::string str = ss.str();
@@ -204,14 +201,16 @@ void ofApp::updateDeltaValues(int deviceID, std::vector<int> values, std::vector
             }
             std::map<char, int>::iterator it;
             for(it = deviceData[deviceID].digit_frequency.begin(); it != deviceData[deviceID].digit_frequency.end(); ++it) {
-                ofLogVerbose() << "Number " << it->first << " occurred " << it->second << " time(s).\n";
+                ofLogNotice() << "Number " << it->first << " occurred " << it->second << " time(s).\n";
             }
 #endif
         }
-        
+#ifdef LOGSENSORVALUES
+        ofLogNotice() << "Device[" << deviceID << "]: " << tabbedValues;
+#endif
     } else {
         setupDevice(deviceID);
-#ifndef FULLDEBUG
+#ifdef FULLDEBUG
         ofLogError("Update Delta: ") << "Mismatched sizes.";
 #endif
     }
@@ -232,7 +231,7 @@ void ofApp::updateMinMaxValues(int deviceID, std::vector<int> values){
         }
     } else {
         setupDevice(deviceID);
-#ifndef FULLDEBUG
+#ifdef FULLDEBUG
         ofLogError("Update MinMax: ") << "Mismatched sizes.";
 #endif
     }
