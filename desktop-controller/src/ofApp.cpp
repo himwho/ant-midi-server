@@ -12,6 +12,9 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+#ifdef LOGSENSORS
+    ofLogToFile("SensorLogs.txt", true);
+#endif
     ofLogNotice("ofApp::setup") << "Connected Devices: ";
 
     for (auto& device: ofxIO::SerialDeviceUtils::listDevices()) {
@@ -67,8 +70,10 @@ void ofApp::setup(){
             videos.push_back(move(unique_ptr<VideoHandler>(new VideoHandler)));
             videos.back()->setup(i, HOST, 10005 + i);
         }else{
+#ifdef FULLDEBUG
             //log the device and note it as unavailable
             ofLogNotice() << cameras[i].id << ": " << cameras[i].deviceName << " - unavailable ";
+#endif
         }
     }
 }
@@ -129,15 +134,21 @@ void ofApp::update(){
                             updateMinMaxValues(j, deviceData[j].deviceValues);
                             for (int k = 0; k < deviceData[j].numberOfSensors; k++){
                                 if (std::abs(deviceData[j].deltaValues[k]) > 10){
-                                    std::cout << "BANG: 10 | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
+#ifndef FULLDEBUG
+                                    ofLogVerbose() << "BANG: 10 | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
+#endif
                                     oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
                                     oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, j+1);
                                 } else if (std::abs(deviceData[j].deltaValues[k]) > 5){
-                                    std::cout << "BANG: 5  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
+#ifndef FULLDEBUG
+                                    ofLogVerbose() << "BANG: 5  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
+#endif
                                     oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
                                     oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, j+1);
                                 } else if (std::abs(deviceData[j].deltaValues[k]) >  3){
-                                    std::cout << "BANG: 3  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k] << std::endl;
+#ifndef FULLDEBUG
+                                    ofLogVerbose() << "BANG: 3  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
+#endif
                                 }
                             }
                             // Set next lastDeviceValue
@@ -156,7 +167,9 @@ void ofApp::update(){
             }
         }
     } catch (const std::exception& exc) {
+#ifndef FULLDEBUG
         ofLogError("ofApp::update") << exc.what();
+#endif
     }
     ofBackground(100, 100, 100);
 }
@@ -170,9 +183,12 @@ void ofApp::updateDeltaValues(int deviceID, std::vector<int> value, std::vector<
         for (std::size_t j = 0; j < value.size(); j++) {
             deviceData[deviceID].deltaValues[j] = value[j] - lastValue[j];
         }
+        
     } else {
         setupDevice(deviceID);
+#ifndef FULLDEBUG
         ofLogError("Update Delta: ") << "Mismatched sizes.";
+#endif
     }
 }
 
@@ -191,7 +207,9 @@ void ofApp::updateMinMaxValues(int deviceID, std::vector<int> value){
         }
     } else {
         setupDevice(deviceID);
+#ifndef FULLDEBUG
         ofLogError("Update MinMax: ") << "Mismatched sizes.";
+#endif
     }
 }
 

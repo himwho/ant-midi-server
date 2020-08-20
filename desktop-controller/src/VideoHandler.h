@@ -42,7 +42,7 @@ public:
         
         this->camIndex = camIndex;
         vidGrabber.setDeviceID(camIndex);
-        vidGrabber.setDesiredFrameRate(15);
+        vidGrabber.setDesiredFrameRate(10);
         vidGrabber.initGrabber(camWidth, camHeight);
         ofSetVerticalSync(true);
         playing = true;
@@ -56,14 +56,14 @@ public:
             image.setFromPixels(vidGrabber.getPixels());
             //image.resize(camWidth/4, camHeight/4);
 
-            ofBuffer cameraSendBuffer;
-            ofSaveImage(image.getPixelsRef(),cameraSendBuffer,OF_IMAGE_FORMAT_JPEG);
-            
-            // Send received byte via OSC to server
-            ofxOscMessage m;
-            m.setAddress("/camera" + to_string(camIndex));
-            m.addBlobArg(cameraSendBuffer);
-            sender.sendMessage(m, false);
+//            ofBuffer cameraSendBuffer;
+//            ofSaveImage(image.getPixelsRef(),cameraSendBuffer,OF_IMAGE_FORMAT_JPEG);
+//            
+//            // Send received byte via OSC to server
+//            ofxOscMessage m;
+//            m.setAddress("/camera" + to_string(camIndex));
+//            m.addBlobArg(cameraSendBuffer);
+//            sender.sendMessage(m, false);
         }
     }
     

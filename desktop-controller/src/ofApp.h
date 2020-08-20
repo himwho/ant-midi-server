@@ -5,6 +5,8 @@
 #include "OSCPlayer.h"
 #include "VideoHandler.h"
 
+#define LOGSENSORS
+
 class ofApp : public ofBaseApp{
 
 	public:

@@ -14,6 +14,7 @@
 #include <atomic>
 
 // send host (aka ip address)
+//#define HOST "127.0.0.1"
 #define HOST "3.94.213.186"
 
 /// send port
