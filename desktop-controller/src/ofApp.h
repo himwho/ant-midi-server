@@ -10,6 +10,10 @@
 //#define LOGFNL
 //#define FULLDEBUG
 
+#define TRIGGER0 15
+#define TRIGGER1 8
+#define TRIGGER2 5
+
 class ofApp : public ofBaseApp{
 
 	public:
@@ -36,6 +40,8 @@ class ofApp : public ofBaseApp{
         bool bInitialSetupComplete = false;
         std::vector<std::string> receivedData;
         std::vector<int> foundDevicesArray;
+        bool bInitialRunComplete = false;
+        int initialRunCount = 0;
 
         // UTILITY FUNCTIONS
         std::vector<int> convertStrtoVec(string str);
