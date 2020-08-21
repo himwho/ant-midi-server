@@ -14,7 +14,6 @@
 //--------------------------------------------------------------
 void ofApp::setup(){
 #ifdef LOGSENSORS
-    ofLogToFile("SensorLogs.txt", true);
 #define ofLogNotice() ofLogNotice() << ofGetTimestampString("[%Y-%m-%d %H:%M:%S.%i] ")
 #endif
     ofLogNotice() << "ofApp::setup" << "Connected Devices: ";
@@ -155,7 +154,7 @@ void ofApp::update(){
                                 }
                             }
                             initialRunCount++; // increment initial run count to bounce OSCPlayers until stable
-                            if (initialRunCount > 100){
+                            if (initialRunCount > 500){
                                 bInitialRunComplete = true;
                             }
                             // Set next lastDeviceValue
@@ -212,7 +211,14 @@ void ofApp::updateDeltaValues(int deviceID, std::vector<int> values, std::vector
 #endif
         }
 #ifdef LOGSENSORVALUES
-        ofLogNotice() << "Device[" << deviceID << "]: " << tabbedValues;
+        if (deviceID == 0) {
+            ofFile DeviceLogZero("Device0.txt", ofFile::WriteOnly);
+            DeviceLogZero << ofGetTimestampString("[%Y-%m-%d %H:%M:%S.%i] ") << tabbedValues << std::endl;
+        }
+        if (deviceID == 2) {
+            ofFile DeviceLogTwo("Device2.txt", ofFile::WriteOnly);
+            DeviceLogTwo << ofGetTimestampString("[%Y-%m-%d %H:%M:%S.%i] ") << tabbedValues << std::endl;
+        }
 #endif
     } else {
         setupDevice(deviceID);
