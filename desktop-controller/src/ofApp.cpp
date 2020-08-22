@@ -190,7 +190,7 @@ void ofApp::updateDeltaValues(int deviceID, std::vector<int> values, std::vector
         for (int k = 0; k < values.size(); k++) {
             deviceData[deviceID].deltaValues[k] = values[k] - lastValues[k];
 #ifdef LOGSENSORVALUES
-            tabbedValues += std::to_string(values[k]) + "\t";
+            tabbedValues += "\t" + std::to_string(values[k]);
 #endif
 #ifdef LOGFNL
             std::stringstream ss;
@@ -212,11 +212,11 @@ void ofApp::updateDeltaValues(int deviceID, std::vector<int> values, std::vector
         }
 #ifdef LOGSENSORVALUES
         if (deviceID == 0) {
-            ofFile DeviceLogZero("Device0.txt", ofFile::WriteOnly);
+            ofFile DeviceLogZero("Device0.txt", ofFile::Append);
             DeviceLogZero << ofGetTimestampString("[%Y-%m-%d %H:%M:%S.%i] ") << tabbedValues << std::endl;
         }
         if (deviceID == 2) {
-            ofFile DeviceLogTwo("Device2.txt", ofFile::WriteOnly);
+            ofFile DeviceLogTwo("Device2.txt", ofFile::Append);
             DeviceLogTwo << ofGetTimestampString("[%Y-%m-%d %H:%M:%S.%i] ") << tabbedValues << std::endl;
         }
 #endif
