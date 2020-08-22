@@ -212,11 +212,17 @@ void ofApp::updateDeltaValues(int deviceID, std::vector<int> values, std::vector
         }
 #ifdef LOGSENSORVALUES
         if (deviceID == 0) {
-            ofFile DeviceLogZero("Device0.txt", ofFile::Append);
+            ofFile DeviceLogZero(ofGetTimestampString("%Y-%m-%d")+"-Device0.txt", ofFile::WriteOnly);
             DeviceLogZero << ofGetTimestampString("[%Y-%m-%d %H:%M:%S.%i] ") << tabbedValues << std::endl;
         }
+        /*
+        if (deviceID == 1) {
+            ofFile DeviceLogTwo(ofGetTimestampString("%Y-%m-%d")+"-Device1.txt", ofFile::WriteOnly);
+            DeviceLogTwo << ofGetTimestampString("[%Y-%m-%d %H:%M:%S.%i] ") << tabbedValues << std::endl;
+        }
+        */
         if (deviceID == 2) {
-            ofFile DeviceLogTwo("Device2.txt", ofFile::Append);
+            ofFile DeviceLogTwo(ofGetTimestampString("%Y-%m-%d")+"-Device2.txt", ofFile::WriteOnly);
             DeviceLogTwo << ofGetTimestampString("[%Y-%m-%d %H:%M:%S.%i] ") << tabbedValues << std::endl;
         }
 #endif
