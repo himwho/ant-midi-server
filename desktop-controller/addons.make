@@ -1,5 +1,9 @@
 ofxPoco
+ofxSSLManager
 ofxIO
+ofxMediaType
+ofxNetworkUtils
+ofxHTTP
 ofxLibwebsockets
 ofxMidi
 ofxOsc

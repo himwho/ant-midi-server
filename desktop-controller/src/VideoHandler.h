@@ -11,35 +11,35 @@
 #include "ofMain.h"
 #include "ofVideoGrabber.h"
 #include "ofxOsc.h"
+#include "ofxHTTP.h"
 
 class VideoHandler {
 public:
-    bool playing;
+    bool playing = false;
+    ofxHTTP::SimpleIPVideoServer server;
     ofVideoGrabber vidGrabber;
     ofImage image;
     
     int camWidth = 640;  // try to grab at this size.
     int camHeight = 480;
     int camIndex;
-    
-    ofxOscSender sender;
+
     std::string iphost;
     int port;
     
-    VideoHandler(){
-        playing = false;
-    }
-    
     ~VideoHandler(){
         stop();
-        vidGrabber.close();
     }
 
     void setup(int camIndex, std::string host, int port){
         this->iphost = host;
         this->port = port;
-        sender.setup(HOST, port);
-        
+        ofxHTTP::SimpleIPVideoServerSettings settings;
+        settings.ipVideoRouteSettings.setMaxClientConnections(1);
+        settings.setPort(port);
+        server.setup(settings);
+        server.start();
+
         this->camIndex = camIndex;
         vidGrabber.setDeviceID(camIndex);
         vidGrabber.setDesiredFrameRate(25);
@@ -52,23 +52,15 @@ public:
         vidGrabber.update();
         if(vidGrabber.isFrameNew()){
             //load image
-            static unsigned long size;
-            image.setFromPixels(vidGrabber.getPixels());
+            //image.setFromPixels(vidGrabber.getPixels());
             //image.resize(camWidth/4, camHeight/4);
-
-//            ofBuffer cameraSendBuffer;
-//            ofSaveImage(image.getPixelsRef(),cameraSendBuffer,OF_IMAGE_FORMAT_JPEG);
-//            
-//            // Send received byte via OSC to server
-//            ofxOscMessage m;
-//            m.setAddress("/camera" + to_string(camIndex));
-//            m.addBlobArg(cameraSendBuffer);
-//            sender.sendMessage(m, false);
+            server.send(vidGrabber.getPixels());
         }
     }
     
     void stop(){
-
+        server.stop();
+        vidGrabber.close();
     }
 };
 #endif /* VideoHandler_h */
