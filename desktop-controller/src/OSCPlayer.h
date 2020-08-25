@@ -14,8 +14,8 @@
 #include <atomic>
 
 // send host (aka ip address)
-//#define HOST "127.0.0.1"
-#define HOST "3.94.213.186"
+//#define IPHOST "127.0.0.1"
+#define IPHOST "3.94.213.186"
 
 /// send port
 #define PORT 9998
@@ -29,8 +29,8 @@ public:
     
     OSCPlayerObject(){
         playing = false;
-        // open an outgoing connection to HOST:PORT
-        sender.setup(HOST, PORT);
+        // open an outgoing connection to IPHOST:PORT
+        sender.setup(IPHOST, PORT);
     }
     
     ~OSCPlayerObject(){

@@ -69,7 +69,7 @@ void ofApp::setup(){
             //log the device
             ofLogNotice() << cameras[i].id << ": " << cameras[i].deviceName;
             videos.push_back(move(unique_ptr<VideoHandler>(new VideoHandler)));
-            videos.back()->setup(i, HOST, 10005 + i);
+            videos.back()->setup(i, IPHOST, 10005 + i);
         }else{
 #ifdef FULLDEBUG
             //log the device and note it as unavailable
@@ -221,20 +221,8 @@ void ofApp::writeToLog(int deviceID){
 #endif
     }
 #ifdef LOGSENSORVALUES
-    if (deviceID == 0) {
-        ofFile DeviceLogZero(ofGetTimestampString("%Y-%m-%d")+"-Device0.txt", ofFile::Append);
-        DeviceLogZero << ofGetTimestampString("[%Y-%m-%d %H:%M:%S.%i] ") << tabbedValues << std::endl;
-    }
-    /*
-    if (deviceID == 1) {
-        ofFile DeviceLogTwo(ofGetTimestampString("%Y-%m-%d")+"-Device1.txt", ofFile::Append);
-        DeviceLogTwo << ofGetTimestampString("[%Y-%m-%d %H:%M:%S.%i] ") << tabbedValues << std::endl;
-    }
-    */
-    if (deviceID == 2) {
-        ofFile DeviceLogTwo(ofGetTimestampString("%Y-%m-%d")+"-Device2.txt", ofFile::Append);
-        DeviceLogTwo << ofGetTimestampString("[%Y-%m-%d %H:%M:%S.%i] ") << tabbedValues << std::endl;
-    }
+    ofFile DeviceLog(ofGetTimestampString("%Y-%m-%d")+"-Device"+std::to_string(deviceID)+".txt", ofFile::Append);
+    DeviceLog << ofGetTimestampString("[%Y-%m-%d %H:%M:%S.%i] ") << tabbedValues << std::endl;
 #endif
 }
 
