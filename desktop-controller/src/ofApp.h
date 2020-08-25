@@ -71,4 +71,7 @@ class ofApp : public ofBaseApp{
         //VIDEO SETUP
         ofVideoGrabber vidGrabber;
         std::vector<unique_ptr<VideoHandler>> videos;
+    
+        //LOG SETUP
+        void writeToLog(int deviceID);
 };

@@ -138,17 +138,33 @@ void ofApp::update(){
 #ifdef FULLDEBUG
                                         ofLogNotice() << "BANG: " << TRIGGER0 << " | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
 #endif
+#ifdef LOGSENSORVALUES
+                                        writeToLog(j);
+#endif
                                         oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
                                         oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, j+1);
                                     } else if (std::abs(deviceData[j].deltaValues[k]) > TRIGGER1){
 #ifdef FULLDEBUG
                                         ofLogNotice() << "BANG: " << TRIGGER1 << "  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
 #endif
+#ifdef LOGSENSORVALUES
+                                        writeToLog(j);
+#endif
                                         oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
                                         oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, j+1);
                                     } else if (std::abs(deviceData[j].deltaValues[k]) >  TRIGGER2){
 #ifdef FULLDEBUG
                                         ofLogNotice() << "BANG: " << TRIGGER2 << "  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
+#endif
+#ifdef LOGSENSORVALUES
+                                        writeToLog(j);
+#endif
+                                    } else if (std::abs(deviceData[j].deltaValues[k]) > 3){ //DEBOUNCE FOR LOGS
+#ifdef FULLDEBUG
+                                        ofLogNotice() << "BANG: " << "3" << "  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
+#endif
+#ifdef LOGSENSORVALUES
+                                        writeToLog(j);
 #endif
                                     }
                                 }
@@ -180,52 +196,57 @@ void ofApp::update(){
     ofBackground(100, 100, 100);
 }
 
+void ofApp::writeToLog(int deviceID){
+    std::string tabbedValues;
+    for (int k = 0; k < deviceData[deviceID].deviceValues.size(); k++) {
+#ifdef LOGSENSORVALUES
+        tabbedValues += "\t" + std::to_string(deviceData[deviceID].deviceValues[k]);
+#endif
+#ifdef LOGFNL
+        std::stringstream ss;
+        ss << deviceData[deviceID].deviceValues[k];
+        std::string str = ss.str();
+        if(isdigit(str[0]))
+        {
+            ++deviceData[deviceID].digit_frequency[str[0]];
+        }
+        else if(isdigit(str[1]))
+        {
+            ++deviceData[deviceID].digit_frequency[str[1]];
+        }
+        std::map<char, int>::iterator it;
+        for(it = deviceData[deviceID].digit_frequency.begin(); it != deviceData[deviceID].digit_frequency.end(); ++it) {
+            ofLogNotice() << "Number " << it->first << " occurred " << it->second << " time(s).\n";
+        }
+#endif
+    }
+#ifdef LOGSENSORVALUES
+    if (deviceID == 0) {
+        ofFile DeviceLogZero(ofGetTimestampString("%Y-%m-%d")+"-Device0.txt", ofFile::Append);
+        DeviceLogZero << ofGetTimestampString("[%Y-%m-%d %H:%M:%S.%i] ") << tabbedValues << std::endl;
+    }
+    /*
+    if (deviceID == 1) {
+        ofFile DeviceLogTwo(ofGetTimestampString("%Y-%m-%d")+"-Device1.txt", ofFile::Append);
+        DeviceLogTwo << ofGetTimestampString("[%Y-%m-%d %H:%M:%S.%i] ") << tabbedValues << std::endl;
+    }
+    */
+    if (deviceID == 2) {
+        ofFile DeviceLogTwo(ofGetTimestampString("%Y-%m-%d")+"-Device2.txt", ofFile::Append);
+        DeviceLogTwo << ofGetTimestampString("[%Y-%m-%d %H:%M:%S.%i] ") << tabbedValues << std::endl;
+    }
+#endif
+}
+
 void ofApp::updateDeltaValues(int deviceID, std::vector<int> values, std::vector<int> lastValues){
     // Check that the size of vectors match otherwise skip this for safety
     if (values.size() == deviceData[deviceID].numberOfSensors){
         deviceData[deviceID].deviceValues.resize(deviceData[deviceID].numberOfSensors);
         deviceData[deviceID].lastDeviceValues.resize(deviceData[deviceID].numberOfSensors);
         deviceData[deviceID].deltaValues.resize(deviceData[deviceID].numberOfSensors);
-        std::string tabbedValues;
         for (int k = 0; k < values.size(); k++) {
             deviceData[deviceID].deltaValues[k] = values[k] - lastValues[k];
-#ifdef LOGSENSORVALUES
-            tabbedValues += "\t" + std::to_string(values[k]);
-#endif
-#ifdef LOGFNL
-            std::stringstream ss;
-            ss << values[k];
-            std::string str = ss.str();
-            if(isdigit(str[0]))
-            {
-                ++deviceData[deviceID].digit_frequency[str[0]];
-            }
-            else if(isdigit(str[1]))
-            {
-                ++deviceData[deviceID].digit_frequency[str[1]];
-            }
-            std::map<char, int>::iterator it;
-            for(it = deviceData[deviceID].digit_frequency.begin(); it != deviceData[deviceID].digit_frequency.end(); ++it) {
-                ofLogNotice() << "Number " << it->first << " occurred " << it->second << " time(s).\n";
-            }
-#endif
         }
-#ifdef LOGSENSORVALUES
-        if (deviceID == 0) {
-            ofFile DeviceLogZero(ofGetTimestampString("%Y-%m-%d")+"-Device0.txt", ofFile::Append);
-            DeviceLogZero << ofGetTimestampString("[%Y-%m-%d %H:%M:%S.%i] ") << tabbedValues << std::endl;
-        }
-        /*
-        if (deviceID == 1) {
-            ofFile DeviceLogTwo(ofGetTimestampString("%Y-%m-%d")+"-Device1.txt", ofFile::Append);
-            DeviceLogTwo << ofGetTimestampString("[%Y-%m-%d %H:%M:%S.%i] ") << tabbedValues << std::endl;
-        }
-        */
-        if (deviceID == 2) {
-            ofFile DeviceLogTwo(ofGetTimestampString("%Y-%m-%d")+"-Device2.txt", ofFile::Append);
-            DeviceLogTwo << ofGetTimestampString("[%Y-%m-%d %H:%M:%S.%i] ") << tabbedValues << std::endl;
-        }
-#endif
     } else {
         setupDevice(deviceID);
 #ifdef FULLDEBUG
