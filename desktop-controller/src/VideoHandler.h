@@ -10,12 +10,11 @@
 
 #include "ofMain.h"
 #include "ofVideoGrabber.h"
-#include "ofxOsc.h"
 #include "ofxHTTP.h"
 
 class VideoHandler {
 public:
-    bool playing = false;
+    bool playing;
     ofxHTTP::SimpleIPVideoServer server;
     ofVideoGrabber vidGrabber;
     ofImage image;
@@ -27,6 +26,10 @@ public:
     std::string iphost;
     int port;
     
+    VideoHandler(){
+        playing = false;
+    }
+    
     ~VideoHandler(){
         stop();
     }
@@ -37,6 +40,8 @@ public:
         ofxHTTP::SimpleIPVideoServerSettings settings;
         settings.ipVideoRouteSettings.setMaxClientConnections(1);
         settings.setPort(port);
+        settings.setHost(host);
+//        settings.setUseSSL(false);
         server.setup(settings);
         server.start();
 
