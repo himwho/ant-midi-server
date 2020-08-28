@@ -38,7 +38,7 @@ public:
     void setup(int camIndex, std::string host, int port){
         this->iphost = host;
         this->port = port;
-        sender.setup(HOST, port);
+        sender.setup(IPHOST, port);
         
         this->camIndex = camIndex;
         vidGrabber.setDeviceID(camIndex);
@@ -58,7 +58,7 @@ public:
 
 //            ofBuffer cameraSendBuffer;
 //            ofSaveImage(image.getPixelsRef(),cameraSendBuffer,OF_IMAGE_FORMAT_JPEG);
-//            
+//
 //            // Send received byte via OSC to server
 //            ofxOscMessage m;
 //            m.setAddress("/camera" + to_string(camIndex));
