@@ -14,7 +14,7 @@
 
 class VideoHandler {
 public:
-    bool playing;
+    bool playing = false;
     ofxHTTP::SimpleIPVideoServer server;
     ofVideoGrabber vidGrabber;
     ofImage image;
@@ -23,25 +23,11 @@ public:
     int camHeight = 480;
     int camIndex;
 
-    std::string iphost;
-    int port;
-    
-    VideoHandler(){
-        playing = false;
-    }
-    
-    ~VideoHandler(){
-        stop();
-    }
-
-    void setup(int camIndex, std::string host, int port){
-        this->iphost = host;
-        this->port = port;
+    VideoHandler(int camIndex, std::string host, int port){
         ofxHTTP::SimpleIPVideoServerSettings settings;
         settings.ipVideoRouteSettings.setMaxClientConnections(1);
         settings.setPort(port);
         settings.setHost(host);
-//        settings.setUseSSL(false);
         server.setup(settings);
         server.start();
 
@@ -51,6 +37,10 @@ public:
         vidGrabber.initGrabber(camWidth, camHeight);
         ofSetVerticalSync(true);
         playing = true;
+    }
+    
+    ~VideoHandler(){
+        stop();
     }
 
     void update(){

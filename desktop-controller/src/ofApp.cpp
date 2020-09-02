@@ -68,8 +68,9 @@ void ofApp::setup(){
         if(cameras[i].bAvailable){
             //log the device
             ofLogNotice() << cameras[i].id << ": " << cameras[i].deviceName;
-            videos.push_back(move(unique_ptr<VideoHandler>(new VideoHandler)));
-            videos.back()->setup(i, IPHOST, 10005 + i);
+//            VideoHandler video(i, IPHOST, 10005 + i);
+//            videos.emplace_back(video);
+            videos.push_back(unique_ptr<VideoHandler>(new VideoHandler(i, "127.0.0.1", 10005 + i)));
         }else{
 #ifdef FULLDEBUG
             //log the device and note it as unavailable
