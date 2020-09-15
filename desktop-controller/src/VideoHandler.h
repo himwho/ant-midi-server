@@ -15,6 +15,7 @@
 class VideoHandler {
 public:
     bool playing = false;
+    ofxHTTP::SimpleIPVideoServerSettings settings;
     ofxHTTP::SimpleIPVideoServer server;
     ofVideoGrabber vidGrabber;
     ofImage image;
@@ -24,7 +25,6 @@ public:
     int camIndex;
 
     VideoHandler(int camIndex, std::string host, int port){
-        ofxHTTP::SimpleIPVideoServerSettings settings;
         settings.ipVideoRouteSettings.setMaxClientConnections(1);
         settings.setPort(port);
         settings.setHost(host);
