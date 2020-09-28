@@ -58,22 +58,21 @@
 
 <body>
   <div id="app">
-    <nav class="navbar" role="navigation" aria-label="main navigation">
-      <div class="container">
-
-      </div>
-    </nav>
     <section class="section">
       <div class="container">
         <div class="columns">
           <div class="column">
-            <h1>🎛️ 🐜</h1>
-            <div class="select">
-              <select v-on:change='onOutputChange' v-model='midiOutIndex'>
-                <option value="-1">Select Output</option>
-                <option v-for='name, i in outputList' v-bind:value='i'>{{ name }}</option>
-                <option value='synth'>Web Synth</option>
-              </select>
+            <h1 class="title">🎛️ 🐜</h1>
+            <div class="field">
+              <div class="control">
+                <div class="select">
+                  <select v-on:change='onOutputChange' v-model='midiOutIndex'>
+                    <option value="-1">Select Output</option>
+                    <option v-for='name, i in outputList' v-bind:value='i'>{{ name }}</option>
+                    <option value='synth'>Web Synth</option>
+                  </select>
+                </div>
+              </div>
             </div>
             <table class="table">
               <thead>
@@ -96,16 +95,11 @@
         </div>
       </div>
     </section>
-    <!-- <script type="text/javascript" src="public/js/midi.js"></script>
-    <script type="text/javascript" src="public/js/synth.js"></script>
-    <script type="text/javascript" src="public/js/ui.js"></script> -->
-
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tone@14.7.58/build/Tone.min.js"></script>
-  <script defer src="https://use.fontawesome.com/releases/v5.14.0/js/all.js"></script>
   <script>
     var socket = io('https://auntcolony.com');
 
