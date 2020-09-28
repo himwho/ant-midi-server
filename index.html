@@ -62,7 +62,7 @@
       <div class="container">
         <div class="columns">
           <div class="column">
-            <h1 class="title">🎛️ 🐜</h1>
+            <h1 class="title">🎛️ 🐜</h1>
             <div class="field">
               <div class="control">
                 <div class="select">
@@ -101,7 +101,7 @@
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tone@14.7.58/build/Tone.min.js"></script>
   <script>
-    var socket = io('https://auntcolony.com');
+    var socket = io();
 
     var app = new Vue({
       el: '#app',
@@ -151,11 +151,9 @@
         handleMIDIMessage(data) {
           if (this.synth) {
             this.synthHandleMIDIMessage(data);
-          } else {
-            if (this.midiOutput) {
-              const midiMessage = [data.x, data.y, data.z];
-              this.midiOutput.send(midiMessage);
-            }
+          } else if (this.midiOutput) {
+            const midiMessage = [data.x, data.y, data.z];
+            this.midiOutput.send(midiMessage);
           }
         },
         initSocketHandler() {

@@ -1,20 +1,18 @@
-.list-item {}
+.list-enter-active {
+	transition: all .2s;
+}
 
-    .list-enter-active {
-      transition: all .2s;
-    }
+.list-leave-active {
+	transition: all .5s;
+}
 
-    .list-leave-active {
-      transition: all .5s;
-    }
+.list-enter {
+	opacity: .7;
+  transform: translateY(-2px);
+  background-color: hsl(348, 100%, 61%);
+}
 
-    .list-enter {
-      opacity: .7;
-      transform: translateY(-2px);
-      background-color: hsl(348, 100%, 61%);
-    }
-
-    .list-leave-to {
-      opacity: 0;
-      transform: translateY(5px);
-    }
+.list-leave-to {
+	opacity: 0;
+  transform: translateY(5px);
+}
