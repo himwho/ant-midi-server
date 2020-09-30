@@ -60,9 +60,9 @@
   <div id="app">
     <section class="section">
       <div class="container">
+        <h1 class="title">🎛️ 🐜</h1>
         <div class="columns">
           <div class="column">
-            <h1 class="title">🎛️ 🐜</h1>
             <div class="field">
               <div class="control">
                 <div class="select">
@@ -73,24 +73,80 @@
                   </select>
                 </div>
               </div>
-            </div>
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Channel</th>
-                  <th>Command</th>
-                  <th>Value</th>
-                </tr>
-              </thead>
-              <tbody name="list" is="transition-group">
-                <template v-for='message in messages'>
-                  <tr v-bind:key="message.id" class="list-item">
-                    <td>{{ getChannel(message) }}</td>
-                    <td>{{ getCommand(message) }}</td>
-                    <td>{{ getNote(message) }}</td>
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Channel</th>
+                    <th>Command</th>
+                    <th>Value</th>
                   </tr>
-                </template>
-              </tbody>
+                </thead>
+                <tbody name="list" is="transition-group">
+                  <template v-for='message in messages'>
+                    <tr v-bind:key="message.id" class="list-item">
+                      <td>{{ getChannel(message) }}</td>
+                      <td>{{ getCommand(message) }}</td>
+                      <td>{{ getNote(message) }}</td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="column">
+            <transition name="slide-fade">
+              <div class="columns" v-if='midiOutIndex === "synth"'>
+                <div class="column">
+                  <div class="field">
+                    <label class="label">Attack: {{ synthAttack }}</label>
+                    <div class="control">
+                      <input type="range" v-model.number='synthAttack' min="0" max="2" step=".2"
+                        v-on:input="attackActive = true" v-on:mouseup="attackActive = false">
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label class="label">Decay: {{ synthDecay }} </label>
+                    <div class="control">
+                      <input type="range" v-model.number='synthDecay' min="0" max="2" step=".2"
+                        v-on:input="decayActive = true" v-on:mouseup="decayActive = false">
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label class="label">Sustain: {{ synthSustain }}</label>
+                    <div class="control">
+                      <input type="range" v-model.number='synthSustain' min="0" max="1" step=".1"
+                        v-on:input="sustainActive = true" v-on:mouseup="sustainActive = false">
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label class="label">Release: {{ synthRelease }}</label>
+                    <div class="control">
+                      <input type="range" v-model.number='synthRelease' min="0" max="5" step=".1"
+                        v-on:input="releaseActive = true" v-on:mouseup="releaseActive = false">
+                    </div>
+                  </div>
+                  <div class="field is-grouped">
+                    <button class="button is-small" v-on:mouseup="mouseUp"
+                      v-on:mousedown="() => mouseDown('A2')">A</button>
+                    <button class="button is-small" v-on:mouseup="mouseUp"
+                      v-on:mousedown="() => mouseDown('B2')">B</button>
+                    <button class="button is-small" v-on:mouseup="mouseUp"
+                      v-on:mousedown="() => mouseDown('C3')">C</button>
+                    <button class="button is-small" v-on:mouseup="mouseUp"
+                      v-on:mousedown="() => mouseDown('D3')">D</button>
+                    <button class="button is-small" v-on:mouseup="mouseUp"
+                      v-on:mousedown="() => mouseDown('E3')">E</button>
+                    <button class="button is-small" v-on:mouseup="mouseUp"
+                      v-on:mousedown="() => mouseDown('F3')">F</button>
+                    <button class="button is-small" v-on:mouseup="mouseUp"
+                      v-on:mousedown="() => mouseDown('G3')">G</button>
+                  </div>
+                </div>
+                <div class="column">
+                  <pre>{{ liveAdsr }}</pre>
+                </div>
+              </div>
+            </transition>
           </div>
         </div>
       </div>
@@ -106,7 +162,17 @@
     var app = new Vue({
       el: '#app',
       data: {
+        adsr: null,
         synth: null,
+        synthAttack: 1,
+        synthDecay: 1,
+        synthSustain: 0.5,
+        synthRelease: 2,
+        synthFilterFreq: 0,
+        attackActive: false,
+        decayActive: false,
+        sustainActive: false,
+        releaseActive: false,
         messages: [],
         midiOutIndex: -1,
         midiAccess: null,
@@ -137,6 +203,115 @@
           } else {
             return null;
           }
+        },
+        liveAdsr() {
+          let maxHeight = 10;
+          let minWidth = 20;
+          let maxWidth = 40;
+
+          let height = Math.ceil(this.synthDecay * 1.5 + this.synthAttack * 3.5);
+          let width = Math.ceil((this.synthRelease * 4));
+
+          height = height > maxHeight ? maxHeight : height;
+          width = width > maxWidth ? maxWidth : width + minWidth;
+
+          height = height > 0 ? height : 1;
+          width = width > 0 ? width : 1;
+
+          let sustHeight = Math.ceil(height * this.synthSustain);
+          let sustWidth = Math.ceil((width - (sustHeight * 2)) - ((height - sustHeight) * 2));
+
+          sustHeight = sustHeight > 1 ? sustHeight : 1;
+
+          let rows = [];
+          let paddingStart = 0;
+          let paddingEnd = 0;
+
+          for (let rowNum = 1; rowNum <= height; rowNum++) {
+            let row = '';
+
+            for (let rowPaddingStart = 0; rowPaddingStart < paddingStart; rowPaddingStart++) {
+              row += ' ';
+            }
+            row += '/';
+
+            let numSpaces = width - (paddingStart + paddingEnd) - 2;
+
+            if (rowNum >= sustHeight && sustHeight > 0) {
+              numSpaces -= sustWidth;
+            }
+
+            for (let rowSpaces = 1; rowSpaces <= numSpaces; rowSpaces++) {
+
+              if (this.attackActive) {
+                if (rowSpaces <= (height - rowNum)) {
+                  row += 'X';
+                } else {
+                  row += ' ';
+                }
+              } else if (this.decayActive) {
+                if (rowSpaces > (height - rowNum)) {
+                  if (rowNum < sustHeight) {
+                    if (rowSpaces < numSpaces - (sustWidth + (sustHeight - rowNum - 2))) {
+                      row += 'X';
+                    } else {
+                      row += ' ';
+                    }
+                  } else {
+                    row += 'X';
+                  }
+                } else {
+                  row += ' ';
+                }
+              } else if (this.sustainActive) {
+                if (rowNum < sustHeight && rowSpaces >= numSpaces - (sustWidth + (sustHeight - rowNum - 2)) && rowSpaces <= numSpaces - (sustHeight - rowNum - 1)) {
+                  row += 'X'
+                } else {
+                  row += ' ';
+                }
+              } else if (this.releaseActive) {
+                if (rowNum < sustHeight && rowSpaces > numSpaces - (sustHeight - rowNum)) {
+                  row += 'X'
+                } else {
+                  row += ' ';
+                }
+              } else {
+                row += ' ';
+              }
+            }
+
+            row += '\\';
+
+            if (rowNum === sustHeight) {
+              for (let rowSus = 1; rowSus <= sustWidth; rowSus++) {
+                row += '_';
+              }
+            }
+
+            for (let rowPaddingEnd = 0; rowPaddingEnd < paddingEnd; rowPaddingEnd++) {
+              row += ' ';
+            }
+
+            for (let maxWidthPadding = 0; maxWidthPadding < maxWidth - width; maxWidthPadding++) {
+              row += ' ';
+            }
+
+
+            row += '\n'
+
+            paddingStart++;
+            paddingEnd++;
+
+            rows.unshift(row);
+          }
+
+          if (height < maxHeight) {
+            for (let headSpace = 1; headSpace <= (maxHeight - height); headSpace++) {
+              rows.unshift('\n');
+            }
+          }
+
+          return rows.join('');
         }
       },
       methods: {
@@ -211,7 +386,7 @@
             noteType = "ON";
             noteChannel = (data.x - 144) + 1;
           }
-          return `Channel: ${noteChannel} Command: ${noteType}  Note: ${note}`;
+          return `Channel: ${noteChannel} Command: ${noteType} Note: ${note}`;
         },
         uuidv4() {
           // https://stackoverflow.com/a/2117523
@@ -226,32 +401,51 @@
               type: "square"
             },
             envelope: {
-              attack: 0.1,
-              decay: 0.2,
-              sustain: 0.5,
-              release: 0.8,
+              attack: this.synthAttack,
+              decay: this.synthDecay,
+              sustain: this.synthSustain,
+              release: this.synthRelease,
             }
           }).toDestination();
         },
+        mouseDown(note) {
+          const now = Tone.now()
+          this.synth.triggerAttack(note, now);
+        },
+        mouseUp() {
+          const now = Tone.now()
+          this.synth.triggerRelease(now);
+        },
         synthHandleMIDIMessage(data) {
           const note = this.getNote(data)
-
+          const now = Tone.now()
           if (data.x < 144 && data.x >= 128) {
-            console.log('note off')
-            this.synth.triggerRelease();
+            this.synth.triggerRelease(now);
           } else if (data.x >= 144) {
-            console.log('playing ' + note);
-            this.synth.triggerAttack(note);
+            this.synth.triggerAttack(note, now);
           }
         },
       },
       created() {
         this.initMidi();
         this.initSocketHandler();
+      },
+      watch: {
+        synthAttack() {
+          this.synth.envelope.attack = this.synthAttack;
+        },
+        synthDecay() {
+          this.synth.envelope.decay = this.synthDecay;
+        },
+        synthSustain() {
+          this.synth.envelope.sustain = this.synthSustain;
+        },
+        synthRelease() {
+          this.synth.envelope.release = this.synthRelease;
+        },
       }
     })
   </script>
-
 
 </body>
 
