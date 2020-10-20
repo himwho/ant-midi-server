@@ -3,12 +3,18 @@
 #include "ofMain.h"
 #include "ofxSerial.h"
 #include "OSCPlayer.h"
-#include "VideoHandler.h"
+#include "ofxHTTP.h"
 
 #define LOGSENSORS
 #define LOGSENSORVALUES
 //#define LOGFNL
 //#define FULLDEBUG
+
+// send host (aka ip address)
+#define IPHOST "127.0.0.1"
+//#define IPHOST "3.94.213.186"
+/// send cam port
+#define CAMPORT 10005
 
 #define TRIGGER0 15
 #define TRIGGER1 8
@@ -70,7 +76,12 @@ class ofApp : public ofBaseApp{
     
         //VIDEO SETUP
         ofVideoGrabber vidGrabber;
-        std::vector<unique_ptr<VideoHandler>> videos;
+        std::vector<ofVideoGrabber> vidGrabbers;
+        ofImage image;
+    
+        int camWidth = 640;  // try to grab at this size.
+        int camHeight = 480;
+        ofxHTTP::SimpleIPVideoServer camServer;
     
         //LOG SETUP
         void writeToLog(int deviceID);

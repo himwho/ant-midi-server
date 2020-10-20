@@ -13,6 +13,22 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+    ofSetFrameRate(30);
+    ofxHTTP::SimpleIPVideoServerSettings camSettings;
+    camSettings.setHost(IPHOST);
+    camSettings.setPort(CAMPORT);
+    
+    camSettings.ipVideoRouteSettings.setMaxClientConnections(1);
+    
+    camServer.setup(camSettings);
+    
+    camServer.start();
+    
+#if !defined(TARGET_LINUX_ARM)
+    // Launch a browser with the address of the server.
+    ofLaunchBrowser(camServer.url());
+#endif
+    
 #ifdef LOGSENSORS
 #define ofLogNotice() ofLogNotice() << ofGetTimestampString("[%Y-%m-%d %H:%M:%S.%i] ")
 #endif
@@ -63,14 +79,17 @@ void ofApp::setup(){
     
     //get back a list of devices.
     vector<ofVideoDevice> cameras = vidGrabber.listDevices();
+    ofSetVerticalSync(true);
 
     for(size_t i = 0; i < cameras.size(); i++){
         if(cameras[i].bAvailable){
             //log the device
             ofLogNotice() << cameras[i].id << ": " << cameras[i].deviceName;
-//            VideoHandler video(i, IPHOST, 10005 + i);
-//            videos.emplace_back(video);
-            videos.push_back(unique_ptr<VideoHandler>(new VideoHandler(i, "127.0.0.1", 10005 + i)));
+            ofVideoGrabber tmpVG;
+            tmpVG.setDeviceID(i);
+            tmpVG.setDesiredFrameRate(25);
+            tmpVG.initGrabber(camWidth, camHeight);
+            vidGrabbers.push_back(tmpVG);
         }else{
 #ifdef FULLDEBUG
             //log the device and note it as unavailable
@@ -194,6 +213,13 @@ void ofApp::update(){
         ofLogError("ofApp::update") << exc.what();
 #endif
     }
+    for (int i = 0; i < vidGrabbers.size(); i++){
+        vidGrabbers[i].update();
+        if(vidGrabbers[i].isFrameNew()){
+            camServer.send(vidGrabbers[i].getPixels());
+        }
+    }
+    
     ofBackground(100, 100, 100);
 }
 
@@ -289,16 +315,16 @@ void ofApp::draw(){
     int columnStep = 0; // Starting point for columns
     int i = 0;
     while (columnStep < ofGetWidth()){
-        int rowStep = ofGetHeight() - ((videos[0]->camHeight/2) * videos.size()/2); // Starting point for rows
+        int rowStep = ofGetHeight() - ((camHeight/2) * vidGrabbers.size()/2); // Starting point for rows
         while (rowStep < ofGetHeight()){
-            if (i < videos.size()){
-                videos[i]->update();
-                videos[i]->image.draw(columnStep, rowStep, videos[i]->camWidth/2, videos[i]->camHeight/2);
-                rowStep += videos[0]->camHeight/2;
+            if (i < vidGrabbers.size()){
+                vidGrabbers[i].update();
+                vidGrabbers[i].draw(columnStep, rowStep, camWidth/2, camHeight/2);
+                rowStep += camHeight/2;
                 i += 1;
             }
         }
-        columnStep += videos[0]->camWidth/2;
+        columnStep += camWidth/2;
     }
     
     for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {
@@ -325,6 +351,7 @@ void ofApp::draw(){
     ofDrawBitmapStringHighlight("FPS: " + std::to_string(ofGetFrameRate()), 20, ofGetHeight() - 20);
     ofDrawBitmapStringHighlight("Frame Number: " + std::to_string(ofGetFrameNum()), 20, ofGetHeight() - 40);
     ofDrawBitmapStringHighlight("Number of Threads: " + std::to_string(oscPlayers.size()), 20, ofGetHeight() - 60);
+    ofDrawBitmapStringHighlight("Number of Video Clients: " + std::to_string(camServer.numConnections()), 20, ofGetHeight() - 80);
 }
 
 //--------------------------------------------------------------
@@ -389,8 +416,6 @@ void ofApp::exit(){
         oscPlayers[i]->stop();
     }
     oscPlayers.clear();
-    for (int i = 0; i < videos.size(); i++){
-        videos[i]->stop();
-    }
-    videos.clear();
+    camServer.stop();
+    vidGrabbers.clear();
 }

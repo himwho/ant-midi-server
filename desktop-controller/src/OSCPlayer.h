@@ -17,7 +17,7 @@
 //#define IPHOST "127.0.0.1"
 #define IPHOST "3.94.213.186"
 
-/// send port
+/// send osc port
 #define PORT 9998
 
 class OSCPlayerObject: public ofThread{
