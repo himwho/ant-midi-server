@@ -1,0 +1,6 @@
+archive/venv/
+.idea
+
+# local data folders
+dev0/
+dev1/
