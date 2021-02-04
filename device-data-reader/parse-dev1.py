@@ -157,17 +157,17 @@ for file in files:
     dic = {'date':da,'time':ti,'sensor1':se1,'sensor2':se2,'sensor3':se3,'sensor4':se4,'sensor5':se5,'sensor6':se6}
     df = pd.DataFrame(data=dic)
     df['date']= pd.to_datetime(df['date'])
-    print("saving deltas for sensor1")
+    print("Saving deltas for sensor1")
     plot_write_delta(c_s1,d_s1,'sensor1',file_n)
-    print("saving deltas for sensor2")
+    print("Saving deltas for sensor2")
     plot_write_delta(c_s2,d_s2,'sensor2',file_n)
-    print("saving deltas for sensor3")
+    print("Saving deltas for sensor3")
     plot_write_delta(c_s3,d_s3,'sensor3',file_n)
-    print("saving deltas for sensor4")
+    print("Saving deltas for sensor4")
     plot_write_delta(c_s4,d_s4,'sensor4',file_n)
-    print("saving deltas for sensor5")
+    print("Saving deltas for sensor5")
     plot_write_delta(c_s5,d_s5,'sensor5',file_n)
-    print("saving deltas for sensor6")
+    print("Saving deltas for sensor6")
     plot_write_delta(c_s6,d_s6,'sensor6',file_n) 
 
     for i in range(1,7):
