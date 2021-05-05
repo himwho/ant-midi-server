@@ -50,7 +50,7 @@ void loop(){
     Serial.print(" ");
     Serial.print(analogRead(analog_pins[10]));
     Serial.print("\n");
-    delay(1);
+    delay(5);
   }
 }
 

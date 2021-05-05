@@ -34,7 +34,7 @@ void loop(){
     Serial.print(" ");
     Serial.print(analogRead(analog_pins[2]));
     Serial.print(" ");
-    Serial.print(analogRead(analog_pins[3]));
+    Serial.print(0); // dead sensor
     Serial.print(" ");
     Serial.print(analogRead(analog_pins[4]));
     Serial.print(" ");
@@ -48,7 +48,7 @@ void loop(){
     Serial.print(" ");
     Serial.print(analogRead(analog_pins[9]));
     Serial.print("\n");
-    delay(1);
+    delay(30);
   }
 }
 

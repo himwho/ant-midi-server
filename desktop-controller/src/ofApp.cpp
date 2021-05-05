@@ -141,8 +141,10 @@ void ofApp::update(){
 #ifdef LOGSENSORVALUES
                                         writeToLog(j);
 #endif
-                                        oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
-                                        oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, j+1);
+                                        if (oscPlayers.size() < 15){ //block too many triggers
+                                            oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
+                                            oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, j+1);
+                                        }
                                     } else if (std::abs(deviceData[j].deltaValues[k]) > TRIGGER1){
 #ifdef FULLDEBUG
                                         ofLogNotice() << "BANG: " << TRIGGER1 << "  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
@@ -150,8 +152,10 @@ void ofApp::update(){
 #ifdef LOGSENSORVALUES
                                         writeToLog(j);
 #endif
-                                        oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
-                                        oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, j+1);
+                                        if (oscPlayers.size() < 15){
+                                            oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
+                                            oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, j+1);
+                                        }
                                     } else if (std::abs(deviceData[j].deltaValues[k]) >  TRIGGER2){
 #ifdef FULLDEBUG
                                         ofLogNotice() << "BANG: " << TRIGGER2 << "  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
