@@ -35,10 +35,16 @@ void ofApp::setup(){
                 std::cout << "Port Position: " << i << " probably has no ants." << '\n';
             }
         }
+
+        // create 'n' number of device structs
+        deviceData.resize(numberOfConnectedDevices);
+        receivedData.resize(numberOfConnectedDevices);
+
         for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {
             bool success = devices[j].setup(devicesInfo[foundDevicesArray[j]], 115200);
             if (success) {
                 ofLogNotice() << "ofApp::setup" << "Successfully setup " << devicesInfo[foundDevicesArray[j]];
+                deviceData[j].deviceNameStr = devicesInfo[foundDevicesArray[j]].port();
             } else {
                 ofLogNotice() << "ofApp::setup" << "Unable to setup " << devicesInfo[foundDevicesArray[j]];
             }
@@ -47,9 +53,6 @@ void ofApp::setup(){
         for (std::vector<int>::const_iterator i = foundDevicesArray.begin(); i != foundDevicesArray.end(); ++i){
             std::cout << *i << ' ';
         }
-        // create 'n' number of device structs
-        deviceData.resize(numberOfConnectedDevices);
-        receivedData.resize(numberOfConnectedDevices);
         std::cout << "< Array of Devices" << std::endl;
         for (int mult = 0; mult < 3; mult++){
             for (int deviceID = 0; deviceID < numberOfConnectedDevices; deviceID++){
@@ -97,6 +100,11 @@ void ofApp::setupDevice(int deviceID){
     deviceData[deviceID].deviceValues = tempVector;
     deviceData[deviceID].numberOfSensors = deviceData[deviceID].deviceValues.size();
 
+    //TODO: programmatically setup trigger ranges by sampling averages for a time period
+    if (deviceData[deviceID].deviceNameStr.find("usbmodem") != std::string::npos) {
+        
+    }
+    
     for (int k = 0; k < deviceData[deviceID].numberOfSensors; k++){
         deviceData[deviceID].deviceValues.push_back(0);
         deviceData[deviceID].deviceValuesMin.push_back(1023);

@@ -10,6 +10,7 @@
 //#define LOGFNL
 //#define FULLDEBUG
 
+// DEFAULT TRIGGERS
 #define TRIGGER0 15
 #define TRIGGER1 8
 #define TRIGGER2 5
@@ -58,6 +59,10 @@ class ofApp : public ofBaseApp{
             std::vector<int> deltaValues;
             std::vector<int> summedValues;
             std::map<char, int> digit_frequency;
+            string deviceNameStr;
+            int trigger1 = TRIGGER0;
+            int trigger2 = TRIGGER1;
+            int trigger3 = TRIGGER2;
         };
     
         std::vector<AntDevice> deviceData;
