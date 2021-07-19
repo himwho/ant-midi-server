@@ -126,56 +126,55 @@ void ofApp::update(){
         if (bInitialSetupComplete && devices.size() > 0) {
             for (int j = 0; j < numberOfConnectedDevices; j++) {
                 if (deviceData[j].bSetupComplete){
-                    while (devices[j].available() > 0){ //TODO: bug this blocks flow to first device
-                        // Send next message of current frame
-                        devices[j].writeByte((unsigned char)ofGetFrameNum());
-                        devices[j].writeByte('\n');
-                        std::this_thread::sleep_for( std::chrono::seconds{(long)0.01});
-                        
-                        // Read all bytes from the devices;
-                        std::vector<uint8_t> buffer;
-                        buffer = devices[j].readBytesUntil(); //TODO: find out device range and size for buffer properly
-                        std::string str(buffer.begin(), buffer.end());
-                        receivedData[j] = str;
-                        
-                        // Convert string and set array of values
-                        std::vector<int> tempVector = convertStrtoVec(receivedData[j]);
-                        deviceData[j].deviceValues = tempVector;
-                        if (tempVector.size() == deviceData[j].numberOfSensors){
-                            updateDeltaValues(j, deviceData[j].deviceValues, deviceData[j].lastDeviceValues);
-                            updateMinMaxValues(j, deviceData[j].deviceValues);
-                            if (bInitialRunComplete){
-                                for (int k = 0; k < deviceData[j].numberOfSensors; k++){
-                                    if (std::abs(deviceData[j].deltaValues[k]) > deviceData[j].trigger1){
+                    // Send next message of current frame
+                    devices[j].writeByte((unsigned char)ofGetFrameNum());
+                    devices[j].writeByte('\n');
+                    std::this_thread::sleep_for( std::chrono::seconds{(long)0.01});
+                    
+                    // Read all bytes from the devices;
+                    std::vector<uint8_t> buffer;
+                    buffer = devices[j].readBytesUntil(); //TODO: find out device range and size for buffer properly
+                    std::string str(buffer.begin(), buffer.end());
+                    receivedData[j] = str;
+                    
+                    // Convert string and set array of values
+                    std::vector<int> tempVector = convertStrtoVec(receivedData[j]);
+                    deviceData[j].deviceValues = tempVector;
+                    if (tempVector.size() == deviceData[j].numberOfSensors){
+                        updateDeltaValues(j, deviceData[j].deviceValues, deviceData[j].lastDeviceValues);
+                        updateMinMaxValues(j, deviceData[j].deviceValues);
+                        if (bInitialRunComplete){
+                            for (int k = 0; k < deviceData[j].numberOfSensors; k++){
+                                if (std::abs(deviceData[j].deltaValues[k]) > deviceData[j].trigger1){
 #ifdef FULLDEBUG
-                                        ofLogNotice() << "BANG: " <<  deviceData[j].trigger1 << " | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
+                                    ofLogNotice() << "BANG: " <<  deviceData[j].trigger1 << " | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
 #endif
 #ifdef LOGSENSORVALUES
-                                        writeToLog(j);
+                                    writeToLog(j);
 #endif
-                                        if (oscPlayers.size() < 15){ //block too many triggers
-                                            oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
-                                            oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, j+1);
-                                        }
-                                    } else if (std::abs(deviceData[j].deltaValues[k]) >  deviceData[j].trigger2){
-#ifdef FULLDEBUG
-                                        ofLogNotice() << "BANG: " <<  deviceData[j].trigger2 << "  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
-#endif
-#ifdef LOGSENSORVALUES
-                                        writeToLog(j);
-#endif
-                                        if (oscPlayers.size() < 15){
-                                            oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
-                                            oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, j+1);
-                                        }
-                                    } else if (std::abs(deviceData[j].deltaValues[k]) > deviceData[j].trigger3){
-#ifdef FULLDEBUG
-                                        ofLogNotice() << "BANG: " <<  deviceData[j].trigger3 << "  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
-#endif
-#ifdef LOGSENSORVALUES
-                                        writeToLog(j);
-#endif
+                                    if (oscPlayers.size() < 15){ //block too many triggers
+                                        oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
+                                        oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, j+1);
                                     }
+                                } else if (std::abs(deviceData[j].deltaValues[k]) >  deviceData[j].trigger2){
+#ifdef FULLDEBUG
+                                    ofLogNotice() << "BANG: " <<  deviceData[j].trigger2 << "  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
+#endif
+#ifdef LOGSENSORVALUES
+                                    writeToLog(j);
+#endif
+                                    if (oscPlayers.size() < 15){
+                                        oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
+                                        oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, j+1);
+                                    }
+                                } else if (std::abs(deviceData[j].deltaValues[k]) > deviceData[j].trigger3){
+#ifdef FULLDEBUG
+                                    ofLogNotice() << "BANG: " <<  deviceData[j].trigger3 << "  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
+#endif
+#ifdef LOGSENSORVALUES
+                                    writeToLog(j);
+#endif
+                                }
 //                                    else if (std::abs(deviceData[j].deltaValues[k]) > 3){ //DEBOUNCE FOR LOGS
 //#ifdef FULLDEBUG
 //                                        ofLogNotice() << "BANG: " << "3" << "  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
@@ -184,22 +183,21 @@ void ofApp::update(){
 //                                        writeToLog(j);
 //#endif
 //                                    }
-                                }
                             }
-                            initialRunCount++; // increment initial run count to bounce OSCPlayers until stable
-                            if (initialRunCount > 500){
-                                bInitialRunComplete = true;
-                            }
-                            // Set next lastDeviceValue
-                            deviceData[j].lastDeviceValues = deviceData[j].deviceValues;
-                        } else {
-                            // had a read error and resetting for setup check
-                            setupDevice(j);
                         }
-                        for (int livePlayers = 0; livePlayers < oscPlayers.size(); livePlayers++){
-                            if (oscPlayers[livePlayers]->played){
-                                oscPlayers.erase(oscPlayers.begin() + livePlayers);
-                            }
+                        initialRunCount++; // increment initial run count to bounce OSCPlayers until stable
+                        if (initialRunCount > 500){
+                            bInitialRunComplete = true;
+                        }
+                        // Set next lastDeviceValue
+                        deviceData[j].lastDeviceValues = deviceData[j].deviceValues;
+                    } else {
+                        // had a read error and resetting for setup check
+                        setupDevice(j);
+                    }
+                    for (int livePlayers = 0; livePlayers < oscPlayers.size(); livePlayers++){
+                        if (oscPlayers[livePlayers]->played){
+                            oscPlayers.erase(oscPlayers.begin() + livePlayers);
                         }
                     }
                 }
