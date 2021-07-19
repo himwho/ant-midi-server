@@ -13,9 +13,8 @@ int sensorMin[NUM_PINS];
 int sensorMax[NUM_PINS];
 
 void setup() {
-  //begin SLIPSerial just like Serial
   Serial.begin(115200);
-  Serial1.begin(115200);
+  while (!Serial);
 
   for (int i = 0; i < NUM_PINS; i++){
     //calibrateSensors(i);
@@ -24,30 +23,27 @@ void setup() {
 
 void loop(){
     // read from port 0, send to port 1:
-  if (Serial.available()) {
-    int inByte = Serial.read();
-    Serial1.print(inByte, DEC);
-  
+  if (Serial.available()) {  
     Serial.print(analogRead(analog_pins[0]));
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.print(analogRead(analog_pins[1]));
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.print(analogRead(analog_pins[2]));
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.print(analogRead(analog_pins[3]));
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.print(analogRead(analog_pins[4]));
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.print(analogRead(analog_pins[5]));
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.print(analogRead(analog_pins[6]));
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.print(analogRead(analog_pins[7]));
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.print(analogRead(analog_pins[8]));
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.print(analogRead(analog_pins[9]));
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.print(analogRead(analog_pins[10]));
     Serial.print("\n");
     delay(5);

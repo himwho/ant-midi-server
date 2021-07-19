@@ -14,8 +14,8 @@ int sensorMax[NUM_PINS];
 int incomingByte = 0;
 
 void setup() {
-  //begin SLIPSerial just like Serial
   Serial.begin(115200);
+  while (!Serial);
 
   for (int i = 0; i < NUM_PINS; i++){
     //calibrateSensors(i);
@@ -23,11 +23,7 @@ void setup() {
 }
 
 void loop(){
-  // reply only when you receive data:
-  if (Serial.available() > 0) {
-    // read the incoming byte:
-    incomingByte = Serial.read();
-
+  if (Serial.available()) {
     Serial.print(analogRead(analog_pins[0]));
     Serial.print(" ");
     Serial.print(analogRead(analog_pins[1]));
@@ -40,7 +36,7 @@ void loop(){
     Serial.print(" ");
     Serial.print(analogRead(analog_pins[5]));
     Serial.print("\n");
-    delay(1);
+    delay(5);
   }
 }
 
