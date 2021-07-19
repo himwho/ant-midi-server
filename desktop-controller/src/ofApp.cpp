@@ -101,8 +101,12 @@ void ofApp::setupDevice(int deviceID){
     deviceData[deviceID].numberOfSensors = deviceData[deviceID].deviceValues.size();
 
     //TODO: programmatically setup trigger ranges by sampling averages for a time period
-    if (deviceData[deviceID].deviceNameStr.find("usbmodem") != std::string::npos) {
-        
+    if (deviceData[deviceID].deviceNameStr.find("usbmodem1464") != std::string::npos) {
+        // force test for wall mounted micro
+        // this should be temporary until a better test can be made
+        deviceData[deviceID].trigger1 = 50;
+        deviceData[deviceID].trigger2 = 35;
+        deviceData[deviceID].trigger3 = 20;
     }
     
     for (int k = 0; k < deviceData[deviceID].numberOfSensors; k++){
@@ -142,9 +146,9 @@ void ofApp::update(){
                             updateMinMaxValues(j, deviceData[j].deviceValues);
                             if (bInitialRunComplete){
                                 for (int k = 0; k < deviceData[j].numberOfSensors; k++){
-                                    if (std::abs(deviceData[j].deltaValues[k]) > TRIGGER0){
+                                    if (std::abs(deviceData[j].deltaValues[k]) > deviceData[j].trigger1){
 #ifdef FULLDEBUG
-                                        ofLogNotice() << "BANG: " << TRIGGER0 << " | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
+                                        ofLogNotice() << "BANG: " <<  deviceData[j].trigger1 << " | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
 #endif
 #ifdef LOGSENSORVALUES
                                         writeToLog(j);
@@ -153,9 +157,9 @@ void ofApp::update(){
                                             oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
                                             oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, j+1);
                                         }
-                                    } else if (std::abs(deviceData[j].deltaValues[k]) > TRIGGER1){
+                                    } else if (std::abs(deviceData[j].deltaValues[k]) >  deviceData[j].trigger2){
 #ifdef FULLDEBUG
-                                        ofLogNotice() << "BANG: " << TRIGGER1 << "  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
+                                        ofLogNotice() << "BANG: " <<  deviceData[j].trigger2 << "  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
 #endif
 #ifdef LOGSENSORVALUES
                                         writeToLog(j);
@@ -164,21 +168,22 @@ void ofApp::update(){
                                             oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
                                             oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, j+1);
                                         }
-                                    } else if (std::abs(deviceData[j].deltaValues[k]) >  TRIGGER2){
+                                    } else if (std::abs(deviceData[j].deltaValues[k]) > deviceData[j].trigger3){
 #ifdef FULLDEBUG
-                                        ofLogNotice() << "BANG: " << TRIGGER2 << "  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
-#endif
-#ifdef LOGSENSORVALUES
-                                        writeToLog(j);
-#endif
-                                    } else if (std::abs(deviceData[j].deltaValues[k]) > 3){ //DEBOUNCE FOR LOGS
-#ifdef FULLDEBUG
-                                        ofLogNotice() << "BANG: " << "3" << "  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
+                                        ofLogNotice() << "BANG: " <<  deviceData[j].trigger3 << "  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
 #endif
 #ifdef LOGSENSORVALUES
                                         writeToLog(j);
 #endif
                                     }
+//                                    else if (std::abs(deviceData[j].deltaValues[k]) > 3){ //DEBOUNCE FOR LOGS
+//#ifdef FULLDEBUG
+//                                        ofLogNotice() << "BANG: " << "3" << "  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
+//#endif
+//#ifdef LOGSENSORVALUES
+//                                        writeToLog(j);
+//#endif
+//                                    }
                                 }
                             }
                             initialRunCount++; // increment initial run count to bounce OSCPlayers until stable
@@ -307,6 +312,8 @@ void ofApp::draw(){
                 videos[i]->image.draw(columnStep, rowStep, videos[i]->camWidth/2, videos[i]->camHeight/2);
                 rowStep += videos[0]->camHeight/2;
                 i += 1;
+            } else {
+                break;
             }
         }
         columnStep += videos[0]->camWidth/2;
