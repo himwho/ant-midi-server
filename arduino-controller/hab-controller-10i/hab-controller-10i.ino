@@ -22,8 +22,7 @@ void setup() {
 }
 
 void loop(){
-    // read from port 0, send to port 1:
-  if (Serial.available()) {
+  if (Serial.available() > 0) {
     Serial.print(analogRead(analog_pins[0]));
     Serial.print(F(" "));
     Serial.print(analogRead(analog_pins[1]));
@@ -44,8 +43,8 @@ void loop(){
     Serial.print(F(" "));
     Serial.print(analogRead(analog_pins[9]));
     Serial.print("\n");
-    delay(5);
   }
+    delay(10);
 }
 
 void calibrateSensors(int pinNumber){

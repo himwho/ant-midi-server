@@ -88,7 +88,7 @@ void ofApp::setupDevice(int deviceID){
     devices[deviceID].writeByte((unsigned char)ofGetFrameNum());
     devices[deviceID].writeByte('\n');
     std::this_thread::sleep_for( std::chrono::seconds{(long)0.01});
-
+    
     // Read all bytes from the devices;
     std::vector<uint8_t> buffer;
     buffer = devices[deviceID].readBytesUntil(); //TODO: find out device range and size for buffer properly
@@ -99,6 +99,7 @@ void ofApp::setupDevice(int deviceID){
     std::vector<int> tempVector = convertStrtoVec(receivedData[deviceID]);
     deviceData[deviceID].deviceValues = tempVector;
     deviceData[deviceID].numberOfSensors = deviceData[deviceID].deviceValues.size();
+    deviceData[deviceID].deviceValues.clear();
 
     //TODO: programmatically setup trigger ranges by sampling averages for a time period
     if (deviceData[deviceID].deviceNameStr.find("usbmodem1464") != std::string::npos) {
@@ -129,7 +130,6 @@ void ofApp::update(){
                     // Send next message of current frame
                     devices[j].writeByte((unsigned char)ofGetFrameNum());
                     devices[j].writeByte('\n');
-                    std::this_thread::sleep_for( std::chrono::seconds{(long)0.01});
                     
                     // Read all bytes from the devices;
                     std::vector<uint8_t> buffer;
@@ -200,6 +200,7 @@ void ofApp::update(){
                             oscPlayers.erase(oscPlayers.begin() + livePlayers);
                         }
                     }
+                    break;
                 }
             }
         }
