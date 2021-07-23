@@ -146,6 +146,7 @@ void ofApp::update(){
                         // Read all bytes from the devices;
                         std::vector<uint8_t> buffer;
                         buffer = devices[j].readBytesUntil(); //TODO: find out device range and size for buffer properly
+                        devices[j].flush();
                         millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
                         cout << "[TIME] After readBytesUntil : " << millisec_since_epoch << endl;
                         std::string str(buffer.begin(), buffer.end());
