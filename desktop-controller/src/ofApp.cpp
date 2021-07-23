@@ -93,7 +93,7 @@ void ofApp::setup(){
 void ofApp::setupDevice(int deviceID){
     // Initial setup for min/max values per device
     // Send next message of current frame
-    ofx::IO::ByteBuffer textBuffer(ofGetFrameNum());
+    ofx::IO::ByteBuffer textBuffer("a");
     devices[deviceID].writeBytes(textBuffer);
     devices[deviceID].writeByte('\n');
     std::this_thread::sleep_for( std::chrono::seconds{(long)0.01});
@@ -143,16 +143,8 @@ void ofApp::update(){
                 cout << "[TIME] Start of first FOR " << j << " loop : " << millisec_since_epoch << endl;
                 if (deviceData[j].bSetupComplete){
                     if (devices[j].available() > deviceData[j].numberOfSensors*2){
-                            
-                        // Send next message of current frame
-                        ofx::IO::ByteBuffer textBuffer(ofGetFrameNum());
-                        devices[j].writeBytes(textBuffer);
-                        devices[j].writeByte('\n');
-                        
                         // Read all bytes from the devices;
                         std::vector<uint8_t> buffer;
-                        millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-                        cout << "[TIME] Before readBytesUntil : " << millisec_since_epoch << endl;
                         buffer = devices[j].readBytesUntil(); //TODO: find out device range and size for buffer properly
                         millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
                         cout << "[TIME] After readBytesUntil : " << millisec_since_epoch << endl;
@@ -228,6 +220,10 @@ void ofApp::update(){
                         }
                         break;
                     }
+                    // Send next message of current frame
+                    ofx::IO::ByteBuffer textBuffer("a");
+                    devices[j].writeBytes(textBuffer);
+                    devices[j].writeByte('\n');
                 }
             }
         }
