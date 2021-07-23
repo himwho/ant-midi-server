@@ -93,9 +93,8 @@ void ofApp::setup(){
 void ofApp::setupDevice(int deviceID){
     // Initial setup for min/max values per device
     // Send next message of current frame
-    ofx::IO::ByteBuffer textBuffer("a");
-    devices[deviceID].writeBytes(textBuffer);
-    devices[deviceID].writeByte('\n');
+    char sendTriggerByte = 1;
+    devices[deviceID].writeByte(sendTriggerByte);
     std::this_thread::sleep_for( std::chrono::seconds{(long)0.01});
     
     // Read all bytes from the devices;
@@ -222,9 +221,8 @@ void ofApp::update(){
                         break;
                     }
                     // Send next message of current frame
-                    ofx::IO::ByteBuffer textBuffer("a");
-                    devices[j].writeBytes(textBuffer);
-                    devices[j].writeByte('\n');
+                    char sendTriggerByte = 1;
+                    devices[j].writeByte(sendTriggerByte);
                 }
             }
         }
