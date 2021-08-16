@@ -15,28 +15,22 @@ int incomingByte = 0;
 
 void setup() {
   Serial.begin(115200);
-  while (!Serial);
 
-  for (int i = 0; i < NUM_PINS; i++){
-    //calibrateSensors(i);
-  }
+//  for (int i = 0; i < NUM_PINS; i++){
+//    calibrateSensors(i);
+//  }
 }
 
 void loop(){
-  if (Serial.available()) {
-    Serial.print(analogRead(analog_pins[0]));
-    Serial.print(" ");
-    Serial.print(analogRead(analog_pins[1]));
-    Serial.print(" ");
-    Serial.print(analogRead(analog_pins[2]));
-    Serial.print(" ");
-    Serial.print(analogRead(analog_pins[3]));
-    Serial.print(" ");
-    Serial.print(analogRead(analog_pins[4]));
-    Serial.print(" ");
-    Serial.print(analogRead(analog_pins[5]));
-    Serial.print("\n");
-    delay(5);
+  if (Serial.available()) { // If there is any data available
+    char inByte = Serial.read(); // store the incoming data
+    if (inByte == 1) {    // Whether the received data is '1'
+      for (int i = 0; i < NUM_PINS; i++){
+        Serial.print(analogRead(analog_pins[i]));
+        Serial.print(F(" "));
+      }
+      Serial.println();
+    }
   }
 }
 
