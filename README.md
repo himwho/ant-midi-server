@@ -18,6 +18,7 @@ Server listens for messages via OSC and sends them to any connecting client via 
 - stylize the web component
 - cleanup the max patch
 - design arduino patch to output OSC directly
+- workout a feedback design for audio to vibrate safely the colony enclosures
 
 ## Notes
 Moving OSC handling to arduino controller side may be an issue due to lack of multithreading already for parsing sensors
