@@ -2,6 +2,7 @@
 Dockerized server for listening to LAN MIDI and broadcasting it to WAN
 
 ## Components
+ - C++ OpenFrameworks controller app for handling and broadcasting multiple ant colonies
  - Custom formicarium embedded with various sensors (first generations focused on LDRs): [CAD Design Directory](custom-formicarium/cad/antformicarium-assembled)
  - Circuit for handling sensors, circuit allows analog -5v->+5v CV output as well as shield mounting for Arduino Uno form factor boards: [Circuit Design Directory](custom-formicarium/circuit-design/)
  - C Controller code for digital ADV handling for the sensors: [Arduino Controller Code](arduino-controller/ant-arduino-6i-controller.ino)
