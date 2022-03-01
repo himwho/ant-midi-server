@@ -80,7 +80,11 @@ void ofApp::setup(){
             //log the device
             ofLogNotice() << cameras[i].id << ": " << cameras[i].deviceName;
             videos.push_back(move(unique_ptr<VideoHandler>(new VideoHandler)));
-            videos.back()->setup(i, IPHOST, 10005 + i);
+            if (cameras[i].deviceName.find("C920") != std::string::npos) {
+                videos.back()->setup(i, IPHOST, 10005 + i, 1280, 720, true);
+            } else {
+                videos.back()->setup(i, IPHOST, 10005 + i, 640, 480, false);
+            }
         }else{
 #ifdef FULLDEBUG
             //log the device and note it as unavailable
@@ -141,7 +145,7 @@ void ofApp::update(){
                 millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
                 cout << "[TIME] Start of first FOR " << j << " loop : " << millisec_since_epoch << endl;
                 if (deviceData[j].bSetupComplete){
-                    if (devices[j].available() > deviceData[j].numberOfSensors*2){
+                    if (devices[j].available() > deviceData[j].numberOfSensors*2){ // TODO: what is this if statement?
                         // Read all bytes from the devices;
                         std::vector<uint8_t> buffer;
                         buffer = devices[j].readBytesUntil(); //TODO: find out device range and size for buffer properly
@@ -155,6 +159,13 @@ void ofApp::update(){
                         std::vector<int> tempVector = convertStrtoVec(receivedData[j]);
                         deviceData[j].deviceValues = tempVector;
                         if (tempVector.size() == deviceData[j].numberOfSensors){
+                            
+                            // dirty removal of wallmount colony's 4th sensor which contains 10 sensors
+                            // TODO: fix or remove this sensor and remove the below
+                            if (deviceData[j].numberOfSensors == 10) {
+                                deviceData[j].deviceValues[3] = 0;
+                            }
+                            
                             updateDeltaValues(j, deviceData[j].deviceValues, deviceData[j].lastDeviceValues);
                             updateMinMaxValues(j, deviceData[j].deviceValues);
                             if (bInitialRunComplete){
@@ -341,19 +352,22 @@ void ofApp::draw(){
     ofSetHexColor(0xffffff);
     int columnStep = 0; // Starting point for columns
     int i = 0;
-    while (columnStep < ofGetWidth()){
-        int rowStep = ofGetHeight() - ((videos[0]->camHeight/2) * videos.size()/2); // Starting point for rows
-        while (rowStep < ofGetHeight()){
-            if (i < videos.size()){
-                videos[i]->update();
-                videos[i]->image.draw(columnStep, rowStep, videos[i]->camWidth/2, videos[i]->camHeight/2);
-                rowStep += videos[0]->camHeight/2;
-                i += 1;
+    int rowStep = 160; // Starting point for rows
+    
+    while (rowStep < ofGetHeight()){
+        if (i < videos.size()){
+            videos[i]->update();
+            videos[i]->image.draw(columnStep, rowStep, videos[i]->camWidth/2, videos[i]->camHeight/2);
+            if (columnStep < ofGetWidth()/2) {
+                columnStep += videos[0]->camWidth/2;
             } else {
-                break;
+                columnStep = 0;
+                rowStep += videos[0]->camHeight/2;
             }
+            i += 1;
+        } else {
+            break;
         }
-        columnStep += videos[0]->camWidth/2;
     }
     
     for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {

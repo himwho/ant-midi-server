@@ -35,14 +35,20 @@ public:
         vidGrabber.close();
     }
 
-    void setup(int camIndex, std::string host, int port){
+    void setup(int camIndex, std::string host, int port, int width, int height, bool bUseForCV){
         this->iphost = host;
         this->port = port;
         sender.setup(IPHOST, port);
         
         this->camIndex = camIndex;
         vidGrabber.setDeviceID(camIndex);
-        vidGrabber.setDesiredFrameRate(25);
+        if (bUseForCV) {
+            vidGrabber.setDesiredFrameRate(30);
+        } else {
+            vidGrabber.setDesiredFrameRate(25);
+        }
+        this->camWidth = width;
+        this->camHeight = height;
         vidGrabber.initGrabber(camWidth, camHeight);
         ofSetVerticalSync(true);
         playing = true;
