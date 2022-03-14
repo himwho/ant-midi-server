@@ -3,6 +3,7 @@
 #include "ofMain.h"
 #include "ofxSerial.h"
 #include "ofxCv.h"
+#include "ofxGui.h"
 #include "OSCPlayer.h"
 #include "VideoHandler.h"
 
@@ -79,9 +80,14 @@ class ofApp : public ofBaseApp{
         std::vector<unique_ptr<VideoHandler>> videos;
     
         // CV SETUP
-        float threshold;
-        ofxCv::ContourFinder contourFinder;
-        bool showLabels;
+        ofxCv::FlowFarneback fb;
+        ofxCv::FlowPyrLK lk;        
+        ofxCv::Flow* curFlow;
+            
+        ofxPanel gui;
+        ofParameter<float> fbPyrScale, lkQualityLevel, fbPolySigma;
+        ofParameter<int> fbLevels, lkWinSize, fbIterations, fbPolyN, fbWinSize, lkMaxLevel, lkMaxFeatures, lkMinDistance;
+        ofParameter<bool> fbUseGaussian, usefb;
     
         // LOG SETUP
         void writeToLog(int deviceID);

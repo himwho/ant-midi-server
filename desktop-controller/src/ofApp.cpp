@@ -94,19 +94,23 @@ void ofApp::setup(){
     }
     
     // OpenCV Setup
-    ofSetVerticalSync(true);
-    contourFinder.setMinAreaRadius(5);
-//    contourFinder.setInvert(true);
-    contourFinder.setTargetColor(ofColor(89,38,1));
-    contourFinder.setUseTargetColor(true);
-    contourFinder.setThreshold(35);
-    contourFinder.setMaxAreaRadius(30);
-    // wait for half a second before forgetting something
-    contourFinder.getTracker().setPersistence(100);
-    // an object can move up to 25 pixels per frame
-    contourFinder.getTracker().setSmoothingRate(0.90);
-    contourFinder.getTracker().setMaximumDistance(25);
-    showLabels = true;
+    gui.setup();
+    
+    gui.add(lkMaxLevel.set("lkMaxLevel", 3, 0, 8));
+    gui.add(lkMaxFeatures.set("lkMaxFeatures", 200, 1, 1000));
+    gui.add(lkQualityLevel.set("lkQualityLevel", 0.01, 0.001, .02));
+    gui.add(lkMinDistance.set("lkMinDistance", 4, 1, 16));
+    gui.add(lkWinSize.set("lkWinSize", 12, 4, 64));
+    gui.add(usefb.set("Use Farneback", true));
+    gui.add(fbPyrScale.set("fbPyrScale", .5, 0, .99));
+    gui.add(fbLevels.set("fbLevels", 4, 1, 8));
+    gui.add(fbIterations.set("fbIterations", 2, 1, 8));
+    gui.add(fbPolyN.set("fbPolyN", 7, 5, 10));
+    gui.add(fbPolySigma.set("fbPolySigma", 1.5, 1.1, 2));
+    gui.add(fbUseGaussian.set("fbUseGaussian", false));
+    gui.add(fbWinSize.set("winSize", 45, 4, 64));
+
+    curFlow = &fb;
 }
 
 void ofApp::setupDevice(int deviceID){
@@ -271,9 +275,28 @@ void ofApp::update(){
     for (int i = 0; i < videos.size(); i++){
         if (videos[i]->bUseForCV) {
             videos[i]->update();
-//            cv::Mat imgMat = ofxCv::toCv(videos[i]->image);
-//            ofxCv::blur(imgMat, 10);
-            contourFinder.findContours(videos[i]->vidGrabber);
+            if(videos[i]->vidGrabber.isFrameNew()) {
+                if(usefb) {
+                    curFlow = &fb;
+                    fb.setPyramidScale(fbPyrScale);
+                    fb.setNumLevels(fbLevels);
+                    fb.setWindowSize(fbWinSize);
+                    fb.setNumIterations(fbIterations);
+                    fb.setPolyN(fbPolyN);
+                    fb.setPolySigma(fbPolySigma);
+                    fb.setUseGaussian(fbUseGaussian);
+                } else {
+                    curFlow = &lk;
+                    lk.setMaxFeatures(lkMaxFeatures);
+                    lk.setQualityLevel(lkQualityLevel);
+                    lk.setMinDistance(lkMinDistance);
+                    lk.setWindowSize(lkWinSize);
+                    lk.setMaxLevel(lkMaxLevel);
+                }
+                
+                // you can use Flow polymorphically
+                curFlow->calcOpticalFlow(videos[i]->vidGrabber);
+            }
         }
     }
 #ifdef FULLDEBUG
@@ -399,8 +422,6 @@ void ofApp::draw(){
 #endif
     // Set background video input
     ofSetHexColor(0xffffff);
-    ofSetBackgroundAuto(showLabels);
-    ofxCv::RectTracker& tracker = contourFinder.getTracker();
     
     // VIDEO DISPLAY
     int columnStep = 0; // Starting point for columns
@@ -410,6 +431,9 @@ void ofApp::draw(){
     while (rowStep < ofGetHeight()){
         if (i < videos.size()){
             videos[i]->image.draw(columnStep, rowStep, videos[i]->camWidth, videos[i]->camHeight);
+            if (videos[i]->bUseForCV) {
+                curFlow->draw(columnStep,rowStep,videos[i]->camWidth,videos[i]->camHeight);
+            }
             if (columnStep < ofGetWidth()/2) { // if the starting point is greater than halfway than it is likely the odd even screen
                 columnStep += videos[0]->camWidth;
             } else {
@@ -421,72 +445,6 @@ void ofApp::draw(){
             break;
         }
     }
-    
-    // CONTOUR TRACKER
-    if(showLabels) {
-        ofPushMatrix();
-        ofScale( 1, 1 );
-        ofTranslate(0,rowStep);
-        ofSetColor(255);
-        contourFinder.draw();
-        for(int i = 0; i < contourFinder.size(); i++) {
-            ofPoint center = ofxCv::toOf(contourFinder.getCenter(i));
-            ofPushMatrix();
-            ofTranslate(center.x, center.y);
-            int label = contourFinder.getLabel(i);
-            string msg = ofToString(label) + ":" + ofToString(tracker.getAge(label));
-            ofDrawBitmapString(msg, 0, 0);
-            ofVec2f velocity = ofxCv::toOf(contourFinder.getVelocity(i));
-            ofScale(5, 5);
-            ofDrawLine(0, 0, velocity.x, velocity.y);
-            ofPopMatrix();
-        }
-    } else {
-        for(int i = 0; i < contourFinder.size(); i++) {
-            unsigned int label = contourFinder.getLabel(i);
-            // only draw a line if this is not a new label
-            if(tracker.existsPrevious(label)) {
-                // use the label to pick a random color
-                ofSeedRandom(label << 24);
-                ofSetColor(ofColor::fromHsb(ofRandom(255), 255, 255));
-                // get the tracked object (cv::Rect) at current and previous position
-                const cv::Rect& previous = tracker.getPrevious(label);
-                const cv::Rect& current = tracker.getCurrent(label);
-                // get the centers of the rectangles
-                ofVec2f previousPosition(previous.x + previous.width / 2, previous.y + previous.height / 2);
-                ofVec2f currentPosition(current.x + current.width / 2, current.y + current.height / 2);
-                ofDrawLine(previousPosition, currentPosition);
-            }
-        }
-    }
-    
-    // this chunk of code visualizes the creation and destruction of labels
-    const vector<unsigned int>& currentLabels = tracker.getCurrentLabels();
-    const vector<unsigned int>& previousLabels = tracker.getPreviousLabels();
-    const vector<unsigned int>& newLabels = tracker.getNewLabels();
-    const vector<unsigned int>& deadLabels = tracker.getDeadLabels();
-    ofSetColor(ofxCv::cyanPrint);
-    for(int i = 0; i < currentLabels.size(); i++) {
-        int j = currentLabels[i];
-        ofDrawLine(j, 0, j, 4);
-    }
-    ofSetColor(ofxCv::magentaPrint);
-    for(int i = 0; i < previousLabels.size(); i++) {
-        int j = previousLabels[i];
-        ofDrawLine(j, 4, j, 8);
-    }
-    ofSetColor(ofxCv::yellowPrint);
-    for(int i = 0; i < newLabels.size(); i++) {
-        int j = newLabels[i];
-        ofDrawLine(j, 8, j, 12);
-    }
-    ofSetColor(ofColor::white);
-    for(int i = 0; i < deadLabels.size(); i++) {
-        int j = deadLabels[i];
-        ofDrawLine(j, 12, j, 16);
-    }
-    
-    ofPopMatrix();
     
     for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {
         ofSetColor(255, 255, 255); //white
@@ -512,6 +470,9 @@ void ofApp::draw(){
     ofDrawBitmapStringHighlight("FPS: " + std::to_string(ofGetFrameRate()), 20, ofGetHeight() - 20);
     ofDrawBitmapStringHighlight("Frame Number: " + std::to_string(ofGetFrameNum()), 20, ofGetHeight() - 40);
     ofDrawBitmapStringHighlight("Number of Threads: " + std::to_string(oscPlayers.size()), 20, ofGetHeight() - 60);
+    
+    gui.draw();
+
 #ifdef FULLDEBUG
     millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     cout << "[TIME] End of draw : " << millisec_since_epoch << endl;
