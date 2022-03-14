@@ -1,3 +1,5 @@
+ofxOpenCv
+ofxCv
 ofxPoco
 ofxIO
 ofxLibwebsockets

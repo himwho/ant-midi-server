@@ -83,7 +83,7 @@ void ofApp::setup(){
             if (cameras[i].deviceName.find("C920") != std::string::npos) {
                 videos.back()->setup(i, IPHOST, 10005 + i, 1280, 720, true);
             } else {
-                videos.back()->setup(i, IPHOST, 10005 + i, 640, 480, false);
+                videos.back()->setup(i, IPHOST, 10005 + i, 640, 380, false);
             }
         }else{
 #ifdef FULLDEBUG
@@ -92,6 +92,21 @@ void ofApp::setup(){
 #endif
         }
     }
+    
+    // OpenCV Setup
+    ofSetVerticalSync(true);
+    contourFinder.setMinAreaRadius(5);
+//    contourFinder.setInvert(true);
+    contourFinder.setTargetColor(ofColor(89,38,1));
+    contourFinder.setUseTargetColor(true);
+    contourFinder.setThreshold(35);
+    contourFinder.setMaxAreaRadius(30);
+    // wait for half a second before forgetting something
+    contourFinder.getTracker().setPersistence(100);
+    // an object can move up to 25 pixels per frame
+    contourFinder.getTracker().setSmoothingRate(0.90);
+    contourFinder.getTracker().setMaximumDistance(25);
+    showLabels = true;
 }
 
 void ofApp::setupDevice(int deviceID){
@@ -136,22 +151,28 @@ auto millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time
 
 //--------------------------------------------------------------
 void ofApp::update(){
+#ifdef FULLDEBUG
     millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     cout << "[TIME] Start of update: " << millisec_since_epoch << endl;
+#endif
     // The serial device can throw exeptions.
     try {
         if (bInitialSetupComplete && devices.size() > 0) {
             for (int j = 0; j < numberOfConnectedDevices; j++) {
+#ifdef FULLDEBUG
                 millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
                 cout << "[TIME] Start of first FOR " << j << " loop : " << millisec_since_epoch << endl;
+#endif
                 if (deviceData[j].bSetupComplete){
                     if (devices[j].available() > deviceData[j].numberOfSensors*2){ // TODO: what is this if statement?
                         // Read all bytes from the devices;
                         std::vector<uint8_t> buffer;
                         buffer = devices[j].readBytesUntil(); //TODO: find out device range and size for buffer properly
                         devices[j].flush();
+#ifdef FULLDEBUG
                         millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
                         cout << "[TIME] After readBytesUntil : " << millisec_since_epoch << endl;
+#endif
                         std::string str(buffer.begin(), buffer.end());
                         receivedData[j] = str;
                         
@@ -170,8 +191,10 @@ void ofApp::update(){
                             updateMinMaxValues(j, deviceData[j].deviceValues);
                             if (bInitialRunComplete){
                                 for (int k = 0; k < deviceData[j].numberOfSensors; k++){
+#ifdef FULLDEBUG
                                     millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
                                     cout << "[TIME] Start of second FOR " << j << " " << k << " loop : " << millisec_since_epoch << endl;
+#endif
                                     if (std::abs(deviceData[j].deltaValues[k]) > deviceData[j].trigger1){
 #ifdef FULLDEBUG
                                         ofLogNotice() << "BANG: " <<  deviceData[j].trigger1 << " | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
@@ -212,8 +235,10 @@ void ofApp::update(){
 //                                    }
                                 }
                             }
+#ifdef FULLDEBUG
                             millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
                             cout << "[TIME] End of second FOR loop : " << millisec_since_epoch << endl;
+#endif
                             initialRunCount++; // increment initial run count to bounce OSCPlayers until stable
                             if (initialRunCount > 100){
                                 bInitialRunComplete = true;
@@ -243,13 +268,25 @@ void ofApp::update(){
 #endif
     }
     ofBackground(100, 100, 100);
+    for (int i = 0; i < videos.size(); i++){
+        if (videos[i]->bUseForCV) {
+            videos[i]->update();
+//            cv::Mat imgMat = ofxCv::toCv(videos[i]->image);
+//            ofxCv::blur(imgMat, 10);
+            contourFinder.findContours(videos[i]->vidGrabber);
+        }
+    }
+#ifdef FULLDEBUG
     millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     cout << "[TIME] End of update loop : " << millisec_since_epoch << endl;
+#endif
 }
 
 void ofApp::writeToLog(int deviceID){
+#ifdef FULLDEBUG
     millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     cout << "[TIME] Start of writeToLog : " << millisec_since_epoch << endl;
+#endif
     std::string tabbedValues;
     for (int k = 0; k < deviceData[deviceID].deviceValues.size(); k++) {
 #ifdef LOGSENSORVALUES
@@ -277,13 +314,17 @@ void ofApp::writeToLog(int deviceID){
     ofFile DeviceLog(ofGetTimestampString("%Y-%m-%d")+"-Device"+std::to_string(deviceID)+".txt", ofFile::Append);
     DeviceLog << ofGetTimestampString("[%Y-%m-%d %H:%M:%S.%i] ") << tabbedValues << std::endl;
 #endif
+#ifdef FULLDEBUG
     millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     cout << "[TIME] End of writeToLog : " << millisec_since_epoch << endl;
+#endif
 }
 
 void ofApp::updateDeltaValues(int deviceID, std::vector<int> values, std::vector<int> lastValues){
+#ifdef FULLDEBUG
     millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     cout << "[TIME] Start of updateDeltaValues : " << millisec_since_epoch << endl;
+#endif
     // Check that the size of vectors match otherwise skip this for safety
     if (values.size() == deviceData[deviceID].numberOfSensors){
         deviceData[deviceID].deviceValues.resize(deviceData[deviceID].numberOfSensors);
@@ -298,13 +339,17 @@ void ofApp::updateDeltaValues(int deviceID, std::vector<int> values, std::vector
         ofLogError("Update Delta: ") << "Mismatched sizes.";
 #endif
     }
+#ifdef FULLDEBUG
     millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     cout << "[TIME] End of updateDeltaValues : " << millisec_since_epoch << endl;
+#endif
 }
 
 void ofApp::updateMinMaxValues(int deviceID, std::vector<int> values){
+#ifdef FULLDEBUG
     millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     cout << "[TIME] Start of updateMinMaxValues : " << millisec_since_epoch << endl;
+#endif
     // Check that the size of vectors match otherwise skip this for safety
     if (values.size() == deviceData[deviceID].numberOfSensors){
         deviceData[deviceID].deviceValuesMin.resize(deviceData[deviceID].numberOfSensors);
@@ -323,8 +368,10 @@ void ofApp::updateMinMaxValues(int deviceID, std::vector<int> values){
         ofLogError("Update MinMax: ") << "Mismatched sizes.";
 #endif
     }
+#ifdef FULLDEBUG
     millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     cout << "[TIME] End of updateMinMaxValues : " << millisec_since_epoch << endl;
+#endif
 }
 
 std::vector<int> ofApp::convertStrtoVec(string str){
@@ -346,23 +393,28 @@ float ofApp::scale(float in, float inMin, float inMax, float outMin, float outMa
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+#ifdef FULLDEBUG
     millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     cout << "[TIME] Start of draw : " << millisec_since_epoch << endl;
+#endif
     // Set background video input
     ofSetHexColor(0xffffff);
+    ofSetBackgroundAuto(showLabels);
+    ofxCv::RectTracker& tracker = contourFinder.getTracker();
+    
+    // VIDEO DISPLAY
     int columnStep = 0; // Starting point for columns
     int i = 0;
-    int rowStep = 160; // Starting point for rows
+    int rowStep = 0; // Starting point for rows
     
     while (rowStep < ofGetHeight()){
         if (i < videos.size()){
-            videos[i]->update();
-            videos[i]->image.draw(columnStep, rowStep, videos[i]->camWidth/2, videos[i]->camHeight/2);
-            if (columnStep < ofGetWidth()/2) {
-                columnStep += videos[0]->camWidth/2;
+            videos[i]->image.draw(columnStep, rowStep, videos[i]->camWidth, videos[i]->camHeight);
+            if (columnStep < ofGetWidth()/2) { // if the starting point is greater than halfway than it is likely the odd even screen
+                columnStep += videos[0]->camWidth;
             } else {
                 columnStep = 0;
-                rowStep += videos[0]->camHeight/2;
+                rowStep += videos[0]->camHeight;
             }
             i += 1;
         } else {
@@ -370,32 +422,100 @@ void ofApp::draw(){
         }
     }
     
+    // CONTOUR TRACKER
+    if(showLabels) {
+        ofPushMatrix();
+        ofScale( 1, 1 );
+        ofTranslate(0,rowStep);
+        ofSetColor(255);
+        contourFinder.draw();
+        for(int i = 0; i < contourFinder.size(); i++) {
+            ofPoint center = ofxCv::toOf(contourFinder.getCenter(i));
+            ofPushMatrix();
+            ofTranslate(center.x, center.y);
+            int label = contourFinder.getLabel(i);
+            string msg = ofToString(label) + ":" + ofToString(tracker.getAge(label));
+            ofDrawBitmapString(msg, 0, 0);
+            ofVec2f velocity = ofxCv::toOf(contourFinder.getVelocity(i));
+            ofScale(5, 5);
+            ofDrawLine(0, 0, velocity.x, velocity.y);
+            ofPopMatrix();
+        }
+    } else {
+        for(int i = 0; i < contourFinder.size(); i++) {
+            unsigned int label = contourFinder.getLabel(i);
+            // only draw a line if this is not a new label
+            if(tracker.existsPrevious(label)) {
+                // use the label to pick a random color
+                ofSeedRandom(label << 24);
+                ofSetColor(ofColor::fromHsb(ofRandom(255), 255, 255));
+                // get the tracked object (cv::Rect) at current and previous position
+                const cv::Rect& previous = tracker.getPrevious(label);
+                const cv::Rect& current = tracker.getCurrent(label);
+                // get the centers of the rectangles
+                ofVec2f previousPosition(previous.x + previous.width / 2, previous.y + previous.height / 2);
+                ofVec2f currentPosition(current.x + current.width / 2, current.y + current.height / 2);
+                ofDrawLine(previousPosition, currentPosition);
+            }
+        }
+    }
+    
+    // this chunk of code visualizes the creation and destruction of labels
+    const vector<unsigned int>& currentLabels = tracker.getCurrentLabels();
+    const vector<unsigned int>& previousLabels = tracker.getPreviousLabels();
+    const vector<unsigned int>& newLabels = tracker.getNewLabels();
+    const vector<unsigned int>& deadLabels = tracker.getDeadLabels();
+    ofSetColor(ofxCv::cyanPrint);
+    for(int i = 0; i < currentLabels.size(); i++) {
+        int j = currentLabels[i];
+        ofDrawLine(j, 0, j, 4);
+    }
+    ofSetColor(ofxCv::magentaPrint);
+    for(int i = 0; i < previousLabels.size(); i++) {
+        int j = previousLabels[i];
+        ofDrawLine(j, 4, j, 8);
+    }
+    ofSetColor(ofxCv::yellowPrint);
+    for(int i = 0; i < newLabels.size(); i++) {
+        int j = newLabels[i];
+        ofDrawLine(j, 8, j, 12);
+    }
+    ofSetColor(ofColor::white);
+    for(int i = 0; i < deadLabels.size(); i++) {
+        int j = deadLabels[i];
+        ofDrawLine(j, 12, j, 16);
+    }
+    
+    ofPopMatrix();
+    
     for (std::size_t j = 0; j < numberOfConnectedDevices; j++) {
         ofSetColor(255, 255, 255); //white
         ofDrawBitmapStringHighlight("Ants found on port:  " + devices[j].port(), 20, (j * 20) + 20);
+        ofDrawBitmapStringHighlight("Number of senors: " + std::to_string(deviceData[j].numberOfSensors), 20 + 450, (j * 20) + 20);
+
         std::stringstream deltas;
         std::copy(deviceData[j].deltaValues.begin(), deviceData[j].deltaValues.end(), std::ostream_iterator<int>(deltas, " "));
         std::string s = deltas.str();
         s = s.substr(0, s.length()-1);
-        ofDrawBitmapString(deltas.str().c_str(), 20, (j * 20) + 100);
-        ofDrawBitmapStringHighlight("Number of senors: " + std::to_string(deviceData[j].numberOfSensors), ofGetWidth()/2, (j * 20) + 100);
-
+        ofDrawBitmapString(deltas.str().c_str(), 20+ 450 + 200, (j * 20) + 20);
         for (std::size_t k = 0; k < deviceData[j].numberOfSensors; k++){
             ofSetColor(255, 255, 255); //white
-            ofDrawCircle((k * 25) + 20, (j * 20) + 200, 5); //exterior
+            ofDrawCircle((k * 25) + 20 + 450 + 200 + 250, (j * 20) + 17, 5); //exterior
             ofSetColor(0, 0, 0); //black
-            ofDrawCircle((k * 25) + 20, (j * 20) + 200, 4); //interior
+            ofDrawCircle((k * 25) + 20 + 450 + 200 + 250, (j * 20) + 17, 4); //interior
             if (std::abs(deviceData[j].deltaValues[k]) > 0){
                 ofSetColor(std::abs(deviceData[j].deltaValues[k] * 50), 0, 0);
-                ofDrawCircle((k * 25) + 20, (j * 20) + 200, 3); //value
+                ofDrawCircle((k * 25) + 20 + 450 + 200 + 250, (j * 20) + 17, 3); //value
             }
         }
     }
     ofDrawBitmapStringHighlight("FPS: " + std::to_string(ofGetFrameRate()), 20, ofGetHeight() - 20);
     ofDrawBitmapStringHighlight("Frame Number: " + std::to_string(ofGetFrameNum()), 20, ofGetHeight() - 40);
     ofDrawBitmapStringHighlight("Number of Threads: " + std::to_string(oscPlayers.size()), 20, ofGetHeight() - 60);
+#ifdef FULLDEBUG
     millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     cout << "[TIME] End of draw : " << millisec_since_epoch << endl;
+#endif
 }
 
 //--------------------------------------------------------------

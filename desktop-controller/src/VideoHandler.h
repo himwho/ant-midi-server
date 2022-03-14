@@ -14,6 +14,7 @@
 
 class VideoHandler {
 public:
+    bool bUseForCV;
     bool playing;
     ofVideoGrabber vidGrabber;
     ofImage image;
@@ -36,6 +37,7 @@ public:
     }
 
     void setup(int camIndex, std::string host, int port, int width, int height, bool bUseForCV){
+        this->bUseForCV = bUseForCV;
         this->iphost = host;
         this->port = port;
         sender.setup(IPHOST, port);
@@ -49,7 +51,7 @@ public:
         }
         this->camWidth = width;
         this->camHeight = height;
-        vidGrabber.initGrabber(camWidth, camHeight);
+        vidGrabber.setup(camWidth, camHeight);
         ofSetVerticalSync(true);
         playing = true;
     }
