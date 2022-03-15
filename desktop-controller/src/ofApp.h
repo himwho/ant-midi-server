@@ -80,14 +80,12 @@ class ofApp : public ofBaseApp{
         std::vector<unique_ptr<VideoHandler>> videos;
     
         // CV SETUP
-        ofxCv::FlowFarneback fb;
-        ofxCv::FlowPyrLK lk;        
-        ofxCv::Flow* curFlow;
-            
-        ofxPanel gui;
-        ofParameter<float> fbPyrScale, lkQualityLevel, fbPolySigma;
-        ofParameter<int> fbLevels, lkWinSize, fbIterations, fbPolyN, fbWinSize, lkMaxLevel, lkMaxFeatures, lkMinDistance;
-        ofParameter<bool> fbUseGaussian, usefb;
+        ofPixels previous;
+        ofImage diff;
+        cv::Scalar diffMean; // color store
+        float threshold;
+        ofxCv::ContourFinder contourFinder;
+        bool showLabels;
     
         // LOG SETUP
         void writeToLog(int deviceID);

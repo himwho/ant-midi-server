@@ -81,9 +81,14 @@ void ofApp::setup(){
             ofLogNotice() << cameras[i].id << ": " << cameras[i].deviceName;
             videos.push_back(move(unique_ptr<VideoHandler>(new VideoHandler)));
             if (cameras[i].deviceName.find("C920") != std::string::npos) {
-                videos.back()->setup(i, IPHOST, 10005 + i, 1280, 720, true);
+                videos.back()->setup(i, IPHOST, 10005 + i, 680, 480, true);
+                // OpenCV Setup
+                // imitate() will set up previous and diff
+                // so they have the same size and type as cam
+                ofxCv::imitate(previous, videos[i]->vidGrabber);
+                ofxCv::imitate(diff, videos[i]->vidGrabber);
             } else {
-                videos.back()->setup(i, IPHOST, 10005 + i, 640, 380, false);
+                videos.back()->setup(i, IPHOST, 10005 + i, 640, 480, false);
             }
         }else{
 #ifdef FULLDEBUG
@@ -92,25 +97,12 @@ void ofApp::setup(){
 #endif
         }
     }
-    
-    // OpenCV Setup
-    gui.setup();
-    
-    gui.add(lkMaxLevel.set("lkMaxLevel", 3, 0, 8));
-    gui.add(lkMaxFeatures.set("lkMaxFeatures", 200, 1, 1000));
-    gui.add(lkQualityLevel.set("lkQualityLevel", 0.01, 0.001, .02));
-    gui.add(lkMinDistance.set("lkMinDistance", 4, 1, 16));
-    gui.add(lkWinSize.set("lkWinSize", 12, 4, 64));
-    gui.add(usefb.set("Use Farneback", true));
-    gui.add(fbPyrScale.set("fbPyrScale", .5, 0, .99));
-    gui.add(fbLevels.set("fbLevels", 4, 1, 8));
-    gui.add(fbIterations.set("fbIterations", 2, 1, 8));
-    gui.add(fbPolyN.set("fbPolyN", 7, 5, 10));
-    gui.add(fbPolySigma.set("fbPolySigma", 1.5, 1.1, 2));
-    gui.add(fbUseGaussian.set("fbUseGaussian", false));
-    gui.add(fbWinSize.set("winSize", 45, 4, 64));
-
-    curFlow = &fb;
+    contourFinder.setMinAreaRadius(3);
+    contourFinder.setMaxAreaRadius(50);
+    contourFinder.setThreshold(15);
+    contourFinder.getTracker().setPersistence(15);
+    contourFinder.getTracker().setMaximumDistance(50);
+    showLabels = false;
 }
 
 void ofApp::setupDevice(int deviceID){
@@ -276,26 +268,26 @@ void ofApp::update(){
         if (videos[i]->bUseForCV) {
             videos[i]->update();
             if(videos[i]->vidGrabber.isFrameNew()) {
-                if(usefb) {
-                    curFlow = &fb;
-                    fb.setPyramidScale(fbPyrScale);
-                    fb.setNumLevels(fbLevels);
-                    fb.setWindowSize(fbWinSize);
-                    fb.setNumIterations(fbIterations);
-                    fb.setPolyN(fbPolyN);
-                    fb.setPolySigma(fbPolySigma);
-                    fb.setUseGaussian(fbUseGaussian);
-                } else {
-                    curFlow = &lk;
-                    lk.setMaxFeatures(lkMaxFeatures);
-                    lk.setQualityLevel(lkQualityLevel);
-                    lk.setMinDistance(lkMinDistance);
-                    lk.setWindowSize(lkWinSize);
-                    lk.setMaxLevel(lkMaxLevel);
+                // take the absolute difference of prev and cam and save it inside diff
+                ofxCv::absdiff(videos[i]->vidGrabber, previous, diff);
+                diff.update();
+                // like ofSetPixels, but more concise and cross-toolkit
+                ofxCv::copy(videos[i]->vidGrabber, previous);
+                // mean() returns a Scalar. it's a cv:: function so we have to pass a Mat
+                diffMean = mean(ofxCv::toCv(diff));
+                // you can only do math between Scalars,
+                // but it's easy to make a Scalar from an int (shown here)
+                diffMean *= cv::Scalar(50);
+                ofxCv::blur(diff, 10);
+                contourFinder.findContours(diff);
+                for(int i = 0; i < contourFinder.size(); i++) {
+                    ofPoint center = ofxCv::toOf(contourFinder.getCenter(i));
+                    ofVec2f velocity = ofxCv::toOf(contourFinder.getVelocity(i));
+                    if (oscPlayers.size() < 15){ //block too many triggers
+                        oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
+                        oscPlayers.back()->outputDeviceValueOSC(deviceData.size()+1, i, center.x, velocity.x, center.y, velocity.y, 120, i+1);
+                    }
                 }
-                
-                // you can use Flow polymorphically
-                curFlow->calcOpticalFlow(videos[i]->vidGrabber);
             }
         }
     }
@@ -422,6 +414,8 @@ void ofApp::draw(){
 #endif
     // Set background video input
     ofSetHexColor(0xffffff);
+    ofSetBackgroundAuto(true);
+    ofxCv::RectTracker& tracker = contourFinder.getTracker();
     
     // VIDEO DISPLAY
     int columnStep = 0; // Starting point for columns
@@ -432,7 +426,75 @@ void ofApp::draw(){
         if (i < videos.size()){
             videos[i]->image.draw(columnStep, rowStep, videos[i]->camWidth, videos[i]->camHeight);
             if (videos[i]->bUseForCV) {
-                curFlow->draw(columnStep,rowStep,videos[i]->camWidth,videos[i]->camHeight);
+                diff.draw(columnStep+videos[i]->camWidth,rowStep,videos[i]->camWidth,videos[i]->camHeight);
+                ofPushMatrix();
+                ofScale( 1, 1 );
+                ofTranslate(columnStep+10,rowStep);
+                ofSetColor(255);
+                if(showLabels) {
+                    contourFinder.draw();
+                    for(int i = 0; i < contourFinder.size(); i++) {
+                        ofPoint center = ofxCv::toOf(contourFinder.getCenter(i));
+                        ofPushMatrix();
+                        ofTranslate(center.x, center.y);
+                        int label = contourFinder.getLabel(i);
+                        string msg = ofToString(label) + ":" + ofToString(tracker.getAge(label));
+                        ofDrawBitmapString(msg, 0, 0);
+                        ofVec2f velocity = ofxCv::toOf(contourFinder.getVelocity(i));
+                        ofScale(5, 5);
+                        ofDrawLine(0, 0, velocity.x, velocity.y);
+                        ofPopMatrix();
+                    }
+                } else {
+                    for(int i = 0; i < contourFinder.size(); i++) {
+                        unsigned int label = contourFinder.getLabel(i);
+                        // only draw a line if this is not a new label
+                        if(tracker.existsPrevious(label)) {
+                            // use the label to pick a random color
+                            ofSeedRandom(label << 24);
+                            ofSetColor(ofColor::fromHsb(ofRandom(255), 255, 255));
+                            // get the tracked object (cv::Rect) at current and previous position
+                            const cv::Rect& previous = tracker.getPrevious(label);
+                            const cv::Rect& current = tracker.getCurrent(label);
+                            // get the centers of the rectangles
+                            ofVec2f previousPosition(previous.x + previous.width / 2, previous.y + previous.height / 2);
+                            ofVec2f currentPosition(current.x + current.width / 2, current.y + current.height / 2);
+                            ofDrawLine(previousPosition, currentPosition);
+                            ofDrawRectangle(current.x, current.y, current.width, current.height);
+                        }
+                        ofPoint center = ofxCv::toOf(contourFinder.getCenter(i));
+                        label = contourFinder.getLabel(i);
+                        string msg = ofToString(label) + ":" + ofToString(tracker.getAge(label));
+                        ofDrawBitmapString(msg, center.x + 20, center.y + 20);
+                    }
+                }
+                
+                // this chunk of code visualizes the creation and destruction of labels
+                const vector<unsigned int>& currentLabels = tracker.getCurrentLabels();
+                const vector<unsigned int>& previousLabels = tracker.getPreviousLabels();
+                const vector<unsigned int>& newLabels = tracker.getNewLabels();
+                const vector<unsigned int>& deadLabels = tracker.getDeadLabels();
+                ofSetColor(ofxCv::cyanPrint);
+                for(int i = 0; i < currentLabels.size(); i++) {
+                    int j = currentLabels[i];
+                    ofDrawLine(j, 0, j, 4);
+                }
+                ofSetColor(ofxCv::magentaPrint);
+                for(int i = 0; i < previousLabels.size(); i++) {
+                    int j = previousLabels[i];
+                    ofDrawLine(j, 4, j, 8);
+                }
+                ofSetColor(ofxCv::yellowPrint);
+                for(int i = 0; i < newLabels.size(); i++) {
+                    int j = newLabels[i];
+                    ofDrawLine(j, 8, j, 12);
+                }
+                ofSetColor(ofColor::white);
+                for(int i = 0; i < deadLabels.size(); i++) {
+                    int j = deadLabels[i];
+                    ofDrawLine(j, 12, j, 16);
+                }
+                ofPopMatrix();
             }
             if (columnStep < ofGetWidth()/2) { // if the starting point is greater than halfway than it is likely the odd even screen
                 columnStep += videos[0]->camWidth;
@@ -470,9 +532,6 @@ void ofApp::draw(){
     ofDrawBitmapStringHighlight("FPS: " + std::to_string(ofGetFrameRate()), 20, ofGetHeight() - 20);
     ofDrawBitmapStringHighlight("Frame Number: " + std::to_string(ofGetFrameNum()), 20, ofGetHeight() - 40);
     ofDrawBitmapStringHighlight("Number of Threads: " + std::to_string(oscPlayers.size()), 20, ofGetHeight() - 60);
-    
-    gui.draw();
-
 #ifdef FULLDEBUG
     millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     cout << "[TIME] End of draw : " << millisec_since_epoch << endl;
