@@ -78,17 +78,7 @@ class ofApp : public ofBaseApp{
         // VIDEO SETUP
         ofVideoGrabber vidGrabber;
         std::vector<unique_ptr<VideoHandler>> videos;
-    
-        // CV SETUP
-        ofxCv::FlowFarneback fb;
-        ofxCv::FlowPyrLK lk;        
-        ofxCv::Flow* curFlow;
-            
-        ofxPanel gui;
-        ofParameter<float> fbPyrScale, lkQualityLevel, fbPolySigma;
-        ofParameter<int> fbLevels, lkWinSize, fbIterations, fbPolyN, fbWinSize, lkMaxLevel, lkMaxFeatures, lkMinDistance;
-        ofParameter<bool> fbUseGaussian, usefb;
-    
+                
         // LOG SETUP
         void writeToLog(int deviceID);
 };

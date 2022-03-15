@@ -93,24 +93,24 @@ void ofApp::setup(){
         }
     }
     
-    // OpenCV Setup
-    gui.setup();
-    
-    gui.add(lkMaxLevel.set("lkMaxLevel", 3, 0, 8));
-    gui.add(lkMaxFeatures.set("lkMaxFeatures", 200, 1, 1000));
-    gui.add(lkQualityLevel.set("lkQualityLevel", 0.01, 0.001, .02));
-    gui.add(lkMinDistance.set("lkMinDistance", 4, 1, 16));
-    gui.add(lkWinSize.set("lkWinSize", 12, 4, 64));
-    gui.add(usefb.set("Use Farneback", true));
-    gui.add(fbPyrScale.set("fbPyrScale", .5, 0, .99));
-    gui.add(fbLevels.set("fbLevels", 4, 1, 8));
-    gui.add(fbIterations.set("fbIterations", 2, 1, 8));
-    gui.add(fbPolyN.set("fbPolyN", 7, 5, 10));
-    gui.add(fbPolySigma.set("fbPolySigma", 1.5, 1.1, 2));
-    gui.add(fbUseGaussian.set("fbUseGaussian", false));
-    gui.add(fbWinSize.set("winSize", 45, 4, 64));
-
-    curFlow = &fb;
+//    // OpenCV Setup
+//    gui.setup();
+//
+//    gui.add(lkMaxLevel.set("lkMaxLevel", 3, 0, 8));
+//    gui.add(lkMaxFeatures.set("lkMaxFeatures", 200, 1, 1000));
+//    gui.add(lkQualityLevel.set("lkQualityLevel", 0.01, 0.001, .02));
+//    gui.add(lkMinDistance.set("lkMinDistance", 4, 1, 16));
+//    gui.add(lkWinSize.set("lkWinSize", 12, 4, 64));
+//    gui.add(usefb.set("Use Farneback", true));
+//    gui.add(fbPyrScale.set("fbPyrScale", .5, 0, .99));
+//    gui.add(fbLevels.set("fbLevels", 4, 1, 8));
+//    gui.add(fbIterations.set("fbIterations", 2, 1, 8));
+//    gui.add(fbPolyN.set("fbPolyN", 7, 5, 10));
+//    gui.add(fbPolySigma.set("fbPolySigma", 1.5, 1.1, 2));
+//    gui.add(fbUseGaussian.set("fbUseGaussian", false));
+//    gui.add(fbWinSize.set("winSize", 45, 4, 64));
+//
+//    curFlow = &fb;
 }
 
 void ofApp::setupDevice(int deviceID){
@@ -272,33 +272,6 @@ void ofApp::update(){
 #endif
     }
     ofBackground(100, 100, 100);
-    for (int i = 0; i < videos.size(); i++){
-        if (videos[i]->bUseForCV) {
-            videos[i]->update();
-            if(videos[i]->vidGrabber.isFrameNew()) {
-                if(usefb) {
-                    curFlow = &fb;
-                    fb.setPyramidScale(fbPyrScale);
-                    fb.setNumLevels(fbLevels);
-                    fb.setWindowSize(fbWinSize);
-                    fb.setNumIterations(fbIterations);
-                    fb.setPolyN(fbPolyN);
-                    fb.setPolySigma(fbPolySigma);
-                    fb.setUseGaussian(fbUseGaussian);
-                } else {
-                    curFlow = &lk;
-                    lk.setMaxFeatures(lkMaxFeatures);
-                    lk.setQualityLevel(lkQualityLevel);
-                    lk.setMinDistance(lkMinDistance);
-                    lk.setWindowSize(lkWinSize);
-                    lk.setMaxLevel(lkMaxLevel);
-                }
-                
-                // you can use Flow polymorphically
-                curFlow->calcOpticalFlow(videos[i]->vidGrabber);
-            }
-        }
-    }
 #ifdef FULLDEBUG
     millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     cout << "[TIME] End of update loop : " << millisec_since_epoch << endl;
@@ -430,9 +403,24 @@ void ofApp::draw(){
     
     while (rowStep < ofGetHeight()){
         if (i < videos.size()){
+            videos[i]->update();
             videos[i]->image.draw(columnStep, rowStep, videos[i]->camWidth, videos[i]->camHeight);
-            if (videos[i]->bUseForCV) {
-                curFlow->draw(columnStep,rowStep,videos[i]->camWidth,videos[i]->camHeight);
+            if (videos[i]->bUseForCV && !videos[i]->bCVProcessing) {
+                videos[i]->curFlow->draw(columnStep,rowStep,videos[i]->camWidth,videos[i]->camHeight);
+                ofSetLineWidth(1); // draw thin flow field
+                // (i.e. don't change flow field's line width with gui lineWidth choice)
+                videos[i]->flow.draw(columnStep,rowStep,videos[i]->camWidth,videos[i]->camHeight); // draw flow field at scale
+                ofSetLineWidth(1); // draw other lines based on gui lineWidth
+                // draw dot to track average flow
+                ofSetColor(0,255,255);
+                ofDrawCircle(videos[i]->dotPos, 1*0.75); // draw dot
+                videos[i]->dotPath.draw(); // draw dot's path
+                if (videos[i]->frameFlows.size() > 0){
+                // draw average magnitude and direction of this frame, if we have it
+                    ofSetColor(255,0,0);
+                    ofDrawLine(videos[i]->camWidth*0.5, videos[i]->camHeight*0.5, videos[i]->camWidth*0.5+ videos[i]->frameFlows.back().x * 50, videos[i]->camHeight*0.5+ videos[i]->frameFlows.back().y * 50);
+                    // scale motion average * 50 for visibility
+                }
             }
             if (columnStep < ofGetWidth()/2) { // if the starting point is greater than halfway than it is likely the odd even screen
                 columnStep += videos[0]->camWidth;
@@ -471,8 +459,6 @@ void ofApp::draw(){
     ofDrawBitmapStringHighlight("Frame Number: " + std::to_string(ofGetFrameNum()), 20, ofGetHeight() - 40);
     ofDrawBitmapStringHighlight("Number of Threads: " + std::to_string(oscPlayers.size()), 20, ofGetHeight() - 60);
     
-    gui.draw();
-
 #ifdef FULLDEBUG
     millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     cout << "[TIME] End of draw : " << millisec_since_epoch << endl;
