@@ -86,6 +86,7 @@ class ofApp : public ofBaseApp{
         float threshold;
         ofxCv::ContourFinder contourFinder;
         bool showLabels;
+        float highestVelocityX, highestVelocityY;
     
         // LOG SETUP
         void writeToLog(int deviceID);

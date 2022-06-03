@@ -284,9 +284,15 @@ void ofApp::update(){
                 for(int j = 0; j < contourFinder.size(); j++) {
                     ofPoint center = ofxCv::toOf(contourFinder.getCenter(j));
                     ofVec2f velocity = ofxCv::toOf(contourFinder.getVelocity(j));
+                    highestVelocityX = std::fmax(std::abs(velocity.x), highestVelocityX);
+                    highestVelocityY = std::fmax(std::abs(velocity.y), highestVelocityY);
                     if (oscPlayers.size() < 15){ //block too many triggers
                         oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
-                        oscPlayers.back()->outputDeviceValueOSC(i, j, center.x, center.y, velocity.x, velocity.y, 120, i);
+                        oscPlayers.back()->outputDeviceValueOSC(i, j, center.x, center.y, std::abs(velocity.x*(127/highestVelocityX)), std::abs(velocity.y*(127/highestVelocityY)), 120, i);
+#ifdef FULLDEBUG
+                        cout << "[CV] Center : " << center.x << ", " << center.y << endl;
+                        cout << "[CV] Velocity : " << velocity.x << ", " << velocity.y << endl;
+#endif
                     }
                 }
             }
