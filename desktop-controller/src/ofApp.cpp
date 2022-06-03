@@ -81,13 +81,14 @@ void ofApp::setup(){
             ofLogNotice() << cameras[i].id << ": " << cameras[i].deviceName;
             videos.push_back(move(unique_ptr<VideoHandler>(new VideoHandler)));
             if (cameras[i].deviceName.find("C920") != std::string::npos) {
-                videos.back()->setup(i, IPHOST, 10005 + i, 680, 480, true);
+                videos.back()->setup(i, IPHOST, 10005 + i, 640, 480, true);
                 // OpenCV Setup
                 // imitate() will set up previous and diff
                 // so they have the same size and type as cam
                 ofxCv::imitate(previous, videos[i]->vidGrabber);
                 ofxCv::imitate(diff, videos[i]->vidGrabber);
             } else {
+                // setup a non cv camera
                 videos.back()->setup(i, IPHOST, 10005 + i, 640, 480, false);
             }
         }else{
@@ -280,12 +281,12 @@ void ofApp::update(){
                 diffMean *= cv::Scalar(50);
                 ofxCv::blur(diff, 10);
                 contourFinder.findContours(diff);
-                for(int i = 0; i < contourFinder.size(); i++) {
-                    ofPoint center = ofxCv::toOf(contourFinder.getCenter(i));
-                    ofVec2f velocity = ofxCv::toOf(contourFinder.getVelocity(i));
+                for(int j = 0; j < contourFinder.size(); j++) {
+                    ofPoint center = ofxCv::toOf(contourFinder.getCenter(j));
+                    ofVec2f velocity = ofxCv::toOf(contourFinder.getVelocity(j));
                     if (oscPlayers.size() < 15){ //block too many triggers
                         oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
-                        oscPlayers.back()->outputDeviceValueOSC(deviceData.size()+1, i, center.x, velocity.x, center.y, velocity.y, 120, i+1);
+                        oscPlayers.back()->outputDeviceValueOSC(i, j, center.x, center.y, velocity.x, velocity.y, 120, i);
                     }
                 }
             }
@@ -424,12 +425,23 @@ void ofApp::draw(){
     
     while (rowStep < ofGetHeight()){
         if (i < videos.size()){
-            videos[i]->image.draw(columnStep, rowStep, videos[i]->camWidth, videos[i]->camHeight);
+            videos[i]->update();
             if (videos[i]->bUseForCV) {
-                diff.draw(columnStep+videos[i]->camWidth,rowStep,videos[i]->camWidth,videos[i]->camHeight);
+                if (columnStep == 0) {
+                    // draw at the starting column x=0
+                    videos[i]->image.draw(0, rowStep, videos[i]->camWidth, videos[i]->camHeight);
+                    diff.draw(0+videos[i]->camWidth,rowStep,videos[i]->camWidth,videos[i]->camHeight);
+                    // flag to the end of the loop to skip this row
+                    columnStep += videos[i]->camWidth;
+                } else {
+                    videos[i]->image.draw(columnStep, rowStep, videos[i]->camWidth, videos[i]->camHeight);
+                    // draw underneath it
+                    // TODO: figure out how to blank out any upcoming cameras that would cover this on the grid
+                    diff.draw(columnStep+videos[i]->camWidth,rowStep+videos[i]->camHeight,videos[i]->camWidth,videos[i]->camHeight);
+                }
                 ofPushMatrix();
                 ofScale( 1, 1 );
-                ofTranslate(columnStep+10,rowStep);
+                ofTranslate(columnStep,rowStep);
                 ofSetColor(255);
                 if(showLabels) {
                     contourFinder.draw();
@@ -495,6 +507,9 @@ void ofApp::draw(){
                     ofDrawLine(j, 12, j, 16);
                 }
                 ofPopMatrix();
+            } else {
+                // resume drawing grid style of remaining cameras
+                videos[i]->image.draw(columnStep, rowStep, videos[i]->camWidth, videos[i]->camHeight);
             }
             if (columnStep < ofGetWidth()/2) { // if the starting point is greater than halfway than it is likely the odd even screen
                 columnStep += videos[0]->camWidth;

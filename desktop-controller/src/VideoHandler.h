@@ -45,7 +45,7 @@ public:
         this->camIndex = camIndex;
         vidGrabber.setDeviceID(camIndex);
         if (bUseForCV) {
-            vidGrabber.setDesiredFrameRate(15);
+            vidGrabber.setDesiredFrameRate(10);
         } else {
             vidGrabber.setDesiredFrameRate(25);
         }
