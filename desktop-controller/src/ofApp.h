@@ -2,6 +2,8 @@
 
 #include "ofMain.h"
 #include "ofxSerial.h"
+#include "ofxCv.h"
+#include "ofxGui.h"
 #include "OSCPlayer.h"
 #include "VideoHandler.h"
 
@@ -73,10 +75,19 @@ class ofApp : public ofBaseApp{
         // OSC SETUP
         std::vector<unique_ptr<OSCPlayerObject>> oscPlayers;
     
-        //VIDEO SETUP
+        // VIDEO SETUP
         ofVideoGrabber vidGrabber;
         std::vector<unique_ptr<VideoHandler>> videos;
     
-        //LOG SETUP
+        // CV SETUP
+        ofPixels previous;
+        ofImage diff;
+        cv::Scalar diffMean; // color store
+        float threshold;
+        ofxCv::ContourFinder contourFinder;
+        bool showLabels;
+        float highestVelocityX, highestVelocityY;
+    
+        // LOG SETUP
         void writeToLog(int deviceID);
 };

@@ -25,8 +25,8 @@ void loop(){
     char inByte = Serial.read(); // store the incoming data
     if (inByte == 1) {    // Whether the received data is '1'
       for (int i = 0; i < NUM_PINS; i++){
-        Serial.print(analogRead(analog_pins[i]));
-        Serial.print(F(" "));
+          Serial.print(analogRead(analog_pins[i]));
+          Serial.print(F(" "));
       }
       Serial.println();
     }
