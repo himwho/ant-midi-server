@@ -12,6 +12,8 @@
 //#define LOGFNL
 //#define FULLDEBUG
 
+#define MAX_CONCURRENT_VOICES 15
+
 // DEFAULT TRIGGERS
 #define TRIGGER0 15
 #define TRIGGER1 8
@@ -86,7 +88,8 @@ class ofApp : public ofBaseApp{
         float threshold;
         ofxCv::ContourFinder contourFinder;
         bool showLabels;
-        float highestVelocityX, highestVelocityY;
+        float lowestVelocityX = 0, lowestVelocityY = 0, highestVelocityX = 0, highestVelocityY = 0;
+        std::vector<ofPoint> lastCenter;
     
         // LOG SETUP
         void writeToLog(int deviceID);

@@ -199,7 +199,7 @@ void ofApp::update(){
 #ifdef LOGSENSORVALUES
                                         writeToLog(j);
 #endif
-                                        if (oscPlayers.size() < 15){ //block too many triggers
+                                        if (oscPlayers.size() < MAX_CONCURRENT_VOICES){ //block too many triggers
                                             oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
                                             oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, j+1);
                                         }
@@ -210,7 +210,7 @@ void ofApp::update(){
 #ifdef LOGSENSORVALUES
                                         writeToLog(j);
 #endif
-                                        if (oscPlayers.size() < 15){
+                                        if (oscPlayers.size() < MAX_CONCURRENT_VOICES){
                                             oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
                                             oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, j+1);
                                         }
@@ -281,19 +281,28 @@ void ofApp::update(){
                 diffMean *= cv::Scalar(50);
                 ofxCv::blur(diff, 10);
                 contourFinder.findContours(diff);
+                lastCenter.resize(contourFinder.size());
                 for(int j = 0; j < contourFinder.size(); j++) {
                     ofPoint center = ofxCv::toOf(contourFinder.getCenter(j));
                     ofVec2f velocity = ofxCv::toOf(contourFinder.getVelocity(j));
+                    lowestVelocityX = std::fmin(std::abs(velocity.x), lowestVelocityX);
+                    lowestVelocityY = std::fmin(std::abs(velocity.y), lowestVelocityY);
                     highestVelocityX = std::fmax(std::abs(velocity.x), highestVelocityX);
                     highestVelocityY = std::fmax(std::abs(velocity.y), highestVelocityY);
-                    if (oscPlayers.size() < 15){ //block too many triggers
+                    if (oscPlayers.size() < MAX_CONCURRENT_VOICES){ //block too many triggers
+                        // TODO: remove this null check by setting up constructor default values
+                        float lastValue = 0;
+                        if (lastCenter[j].x >= 0) {
+                            lastValue = lastCenter[j].x;
+                        }
                         oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
-                        oscPlayers.back()->outputDeviceValueOSC(i, j, center.x, center.y, std::abs(velocity.x*(127/highestVelocityX)), std::abs(velocity.y*(127/highestVelocityY)), 120, i);
+                        oscPlayers.back()->outputDeviceValueOSC(i, j, center.x, lastValue, std::abs(velocity.x*(127/lowestVelocityX)), std::abs(velocity.x*(127/highestVelocityX)), 120, 0);
 #ifdef FULLDEBUG
                         cout << "[CV] Center : " << center.x << ", " << center.y << endl;
                         cout << "[CV] Velocity : " << velocity.x << ", " << velocity.y << endl;
 #endif
                     }
+                    lastCenter[j] = center;
                 }
             }
         }
