@@ -298,8 +298,9 @@ void ofApp::update(){
                         oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
                         oscPlayers.back()->outputDeviceValueOSC(i, j, center.x, lastValue, std::abs(velocity.x*(127/lowestVelocityX)), std::abs(velocity.x*(127/highestVelocityX)), 120, 0);
 #ifdef FULLDEBUG
-                        cout << "[CV] Center : " << center.x << ", " << center.y << endl;
-                        cout << "[CV] Velocity : " << velocity.x << ", " << velocity.y << endl;
+                        std::cout << "[CV] Center : " << center.x << ", " << center.y << std::endl;
+                        std::cout << "[CV] Velocity : " << velocity.x << ", " << velocity.y << std::endl;
+                        std::cout << "[MIDI] Device: " << i << ", Sensor: " << j << ", Value: " << center.x << ", LastValue: " << lastValue << ", MinValue: " << std::abs(velocity.x*(127/lowestVelocityX)) << ", MaxValue: " << std::abs(velocity.x*(127/highestVelocityX)) << ", BPM: " << 120 << ", Channel: " << 0 << std::endl;
 #endif
                     }
                     lastCenter[j] = center;
