@@ -1,3 +1,6 @@
+# Data Reports
+Desktop-controller/bin/data/*.txt
+
 # Logs
 logs
 *.log
