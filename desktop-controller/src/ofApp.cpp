@@ -150,7 +150,7 @@ auto millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time
 void ofApp::update(){
 #if defined(FULLDEBUG) || defined(LOGTIME)
     millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    cout << "[TIME] Start of update: " << millisec_since_epoch << endl;
+    std::cout << "[TIME] Start of update: " << millisec_since_epoch << std::endl;
 #endif
     // The serial device can throw exeptions.
     try {
@@ -158,7 +158,7 @@ void ofApp::update(){
             for (int j = 0; j < numberOfConnectedDevices; j++) {
 #if defined(FULLDEBUG) || defined(LOGTIME)
                 millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-                cout << "[TIME] Start of first FOR " << j << " loop : " << millisec_since_epoch << endl;
+                std::cout << "[TIME] Start of first FOR " << j << " loop : " << millisec_since_epoch << std::endl;
 #endif
                 if (deviceData[j].bSetupComplete){
                     if (devices[j].available() > deviceData[j].numberOfSensors*2){ // TODO: what is this if statement?
@@ -168,7 +168,7 @@ void ofApp::update(){
                         devices[j].flush();
 #if defined(FULLDEBUG) || defined(LOGTIME)
                         millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-                        cout << "[TIME] After readBytesUntil : " << millisec_since_epoch << endl;
+                        std::cout << "[TIME] After readBytesUntil : " << millisec_since_epoch << std::endl;
 #endif
                         std::string str(buffer.begin(), buffer.end());
                         receivedData[j] = str;
@@ -190,7 +190,7 @@ void ofApp::update(){
                                 for (int k = 0; k < deviceData[j].numberOfSensors; k++){
 #if defined(FULLDEBUG) || defined(LOGTIME)
                                     millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-                                    cout << "[TIME] Start of second FOR " << j << " " << k << " loop : " << millisec_since_epoch << endl;
+                                    std::cout << "[TIME] Start of second FOR " << j << " " << k << " loop : " << millisec_since_epoch << std::endl;
 #endif
                                     if (std::abs(deviceData[j].deltaValues[k]) > deviceData[j].trigger1){
 #if defined(FULLDEBUG) || defined(LOGSENSORS)
@@ -201,7 +201,7 @@ void ofApp::update(){
 #endif
                                         if (oscPlayers.size() < MAX_CONCURRENT_VOICES){ //block too many triggers
                                             oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
-                                            oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, j+1);
+                                            oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 130, j+1);
                                         }
                                     } else if (std::abs(deviceData[j].deltaValues[k]) >  deviceData[j].trigger2){
 #if defined(FULLDEBUG) || defined(LOGSENSORS)
@@ -212,7 +212,7 @@ void ofApp::update(){
 #endif
                                         if (oscPlayers.size() < MAX_CONCURRENT_VOICES){
                                             oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
-                                            oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 120, j+1);
+                                            oscPlayers.back()->outputDeviceValueOSC(j, k, deviceData[j].deviceValues[k], deviceData[j].lastDeviceValues[k], deviceData[j].deviceValuesMin[k], deviceData[j].deviceValuesMax[k], 130, j+1);
                                         }
                                     } else if (std::abs(deviceData[j].deltaValues[k]) > deviceData[j].trigger3){
 #if defined(FULLDEBUG) || defined(LOGSENSORS)
@@ -223,7 +223,7 @@ void ofApp::update(){
 #endif
                                     }
 //                                    else if (std::abs(deviceData[j].deltaValues[k]) > 3){ //DEBOUNCE FOR LOGS
-//#ifdef FULLDEBUG
+//#if defined(FULLDEBUG) || defined(LOGSENSORS)
 //                                        ofLogNotice() << "BANG: " << "3" << "  | Device " << j << " | Sensor: " << k << " | Value: " << deviceData[j].deltaValues[k];
 //#endif
 //#ifdef LOGSENSORVALUES
@@ -246,9 +246,9 @@ void ofApp::update(){
                             // had a read error and resetting for setup check
                             setupDevice(j);
                         }
-                        for (int livePlayers = 0; livePlayers < oscPlayers.size(); livePlayers++){
-                            if (oscPlayers[livePlayers]->played){
-                                oscPlayers.erase(oscPlayers.begin() + livePlayers);
+                        for (int livePlayer = 0; livePlayer < oscPlayers.size(); livePlayer++){
+                            if (oscPlayers[livePlayer]->played){
+                                oscPlayers.erase(oscPlayers.begin() + livePlayer);
                             }
                         }
                         break;
@@ -307,11 +307,13 @@ void ofApp::update(){
                                 lastValue = lastCenter[j].x;
                             }
                             oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
-                            oscPlayers.back()->outputDeviceValueOSC(i, j, center.x, lastValue, std::abs((float)velocity.x*(127/lowestVelocityX)), std::abs((float)velocity.x*(127/highestVelocityX)), 120, 0);
+                            oscPlayers.back()->outputDeviceValueOSC(i, j, center.x, lastValue, std::abs((float)velocity.x*(127/lowestVelocityX)), std::abs((float)velocity.x*(127/highestVelocityX)), 130, 0+1);
 #if defined(FULLDEBUG) || defined(LOGCV)
                             std::cout << "[MIDI CV] Center : " << center.x << ", " << center.y << std::endl;
                             std::cout << "[MIDI CV] Velocity : " << velocity.x << ", " << velocity.y << std::endl;
-                            //std::cout << "[MIDI] Device: " << i << ", Sensor: " << j << ", Value: " << center.x << ", LastValue: " << lastValue << ", MinValue: " << std::abs((float)velocity.x*(127/lowestVelocityX)) << ", MaxValue: " << std::abs((float)velocity.x*(127/highestVelocityX)) << ", BPM: " << 120 << ", Channel: " << 0 << std::endl;
+#endif
+#if defined(FULLDEBUG)
+                            std::cout << "[MIDI] Device: " << i << ", Sensor: " << j << ", Value: " << center.x << ", LastValue: " << lastValue << ", MinValue: " << std::abs((float)velocity.x*(127/lowestVelocityX)) << ", MaxValue: " << std::abs((float)velocity.x*(127/highestVelocityX)) << ", BPM: " << 130 << ", Channel: " << 0 << std::endl;
 #endif
                         }
                         lastCenter[j] = center;
@@ -320,6 +322,14 @@ void ofApp::update(){
             }
         }
     }
+
+    // erase played notes that signaled an off
+    for (int livePlayer = 0; livePlayer < oscPlayers.size(); livePlayer++){
+        if (oscPlayers[livePlayer]->played){
+            oscPlayers.erase(oscPlayers.begin() + livePlayer);
+        }
+    }
+    
 #if defined(FULLDEBUG) || defined(LOGTIME)
     millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     cout << "[TIME] End of update loop : " << millisec_since_epoch << endl;

@@ -15,7 +15,7 @@ var udp_server = dgram.createSocket('udp4', function(msg, rinfo) {
   var osc_message;
   try {
     osc_message = osc.fromBuffer(msg);
-    //console.log(osc_message);
+    console.log(osc_message);
   } catch(err) {
     return console.log('Could not decode OSC message');
   }

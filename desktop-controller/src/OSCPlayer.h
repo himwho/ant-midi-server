@@ -72,9 +72,15 @@ public:
         m.addInt32Arg(rawMessage[1]);
         m.addInt32Arg(rawMessage[2]);
         sender.sendMessage(m, false);
+        
 #if defined(FULLDEBUG) || defined(LOGMIDI)
         std::cout << "[MIDI] OFF | Device: " << deviceID << ", Sensor: " << sensorID << ", Held: " << timeHeld << ", Pitch: " << pitch << ", Channel: " << channel << std::endl;
 #endif
+#if defined(FULLDEBUG) || defined(LOGMIDI)
+        std::cout << "[MIDI] RAW MESSAGE: " << m.getAddress() << ", " << m.getArgAsInt(0) << ", " << m.getArgAsInt(1) << ", " << m.getArgAsInt(2) << std::endl;
+#endif
+        
+        played = true;
     }
 
     void stop(){
@@ -88,7 +94,7 @@ public:
         // Locally set the pitch and velocity of the bang from the input device/sensor
         float fpitch, fvelocity;
         fpitch = ofMap(value, valuemin, valuemax, 42, 100, true);
-        fvelocity = ofMap(value, valuemin, valuemax, 0, 127, true);
+        fvelocity = ofMap(value, valuemin, valuemax, 20, 127, true);
         int pitch = (int) fpitch;
         int velocity = (int) fvelocity;
 
@@ -105,13 +111,11 @@ public:
         sender.sendMessage(m, false);
         
 #if defined(FULLDEBUG) || defined(LOGMIDI)
-        //std::cout << "[MIDI] MESSAGE | Device: " << deviceId << ", Pitch: " << pitch << ", Velocity: " << velocity << ", Channel: " << MIDI_NOTE_ON+(chan-1) << std::endl;
         std::cout << "[MIDI] RAW MESSAGE: " << m.getAddress() << ", " << m.getArgAsInt(0) << ", " << m.getArgAsInt(1) << ", " << m.getArgAsInt(2) << std::endl;
 #endif
 
-        int msHoldNote = std::abs(value - lastvalue) * msBPM;
+        int msHoldNote = std::abs(value - lastvalue) * msBPM/4; //div 4 is a temp reducer
         oscNoteOff(deviceId, sensorId, msHoldNote, chan, pitch);
-        played = true;
         stop();
     }
 };
