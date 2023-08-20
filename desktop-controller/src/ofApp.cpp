@@ -288,17 +288,17 @@ void ofApp::update(){
                     
                     // only add a new osc player if there is found velocity to the movement
                     if (velocity.x > 0 || velocity.y > 0) {
-                        if (std::abs(velocity.x) < lowestVelocityX) {
-                            lowestVelocityX = (float)velocity.x;
+                        if (std::fabs(velocity.x) < lowestVelocityX) {
+                            lowestVelocityX = std::fabs(velocity.x);
                         }
-                        if (std::abs(velocity.y) < lowestVelocityY) {
-                            lowestVelocityY = (float)velocity.y;
+                        if (std::fabs(velocity.y) < lowestVelocityY) {
+                            lowestVelocityY = std::fabs(velocity.y);
                         }
-                        if (std::abs(velocity.x) > highestVelocityX) {
-                            highestVelocityX = (float)velocity.x;
+                        if (std::fabs(velocity.x) > highestVelocityX) {
+                            highestVelocityX = std::fabs(velocity.x);
                         }
-                        if (std::abs(velocity.y) > highestVelocityY) {
-                            highestVelocityY = (float)velocity.y;
+                        if (std::fabs(velocity.y) > highestVelocityY) {
+                            highestVelocityY = std::fabs(velocity.y);
                         }
                         if (oscPlayers.size() < MAX_CONCURRENT_VOICES){ //block too many triggers
                             // TODO: remove this null check by setting up constructor default values
@@ -307,13 +307,13 @@ void ofApp::update(){
                                 lastValue = lastCenter[j].x;
                             }
                             oscPlayers.push_back(move(unique_ptr<OSCPlayerObject>(new OSCPlayerObject)));
-                            oscPlayers.back()->outputDeviceValueOSC(i, j, center.x, lastValue, std::abs((float)velocity.x*(127/lowestVelocityX)), std::abs((float)velocity.x*(127/highestVelocityX)), 130, 0+1);
+                            oscPlayers.back()->outputDeviceValueOSC(i, j, (int)center.x, (int)lastValue, (int)std::fabs((float)velocity.x*(127/lowestVelocityX)), (int)std::fabs((float)velocity.x*(127/highestVelocityX)), 130, 0+1);
 #if defined(FULLDEBUG) || defined(LOGCV)
                             std::cout << "[MIDI CV] Center : " << center.x << ", " << center.y << std::endl;
                             std::cout << "[MIDI CV] Velocity : " << velocity.x << ", " << velocity.y << std::endl;
 #endif
 #if defined(FULLDEBUG)
-                            std::cout << "[MIDI] Device: " << i << ", Sensor: " << j << ", Value: " << center.x << ", LastValue: " << lastValue << ", MinValue: " << std::abs((float)velocity.x*(127/lowestVelocityX)) << ", MaxValue: " << std::abs((float)velocity.x*(127/highestVelocityX)) << ", BPM: " << 130 << ", Channel: " << 0 << std::endl;
+                            std::cout << "[MIDI] Device: " << i << ", Sensor: " << j << ", Value: " << center.x << ", LastValue: " << lastValue << ", MinValue: " << std::fabs((float)velocity.x*(127/lowestVelocityX)) << ", MaxValue: " << std::fabs((float)velocity.x*(127/highestVelocityX)) << ", BPM: " << 130 << ", Channel: " << 0 << std::endl;
 #endif
                         }
                         lastCenter[j] = center;
