@@ -7,8 +7,11 @@
 #include "OSCPlayer.h"
 #include "VideoHandler.h"
 
-#define LOGSENSORS
-#define LOGSENSORVALUES
+#define LOGMIDI
+//#define LOGTIME
+#define LOGCV
+//#define LOGSENSORS
+//#define LOGSENSORVALUES
 //#define LOGFNL
 //#define FULLDEBUG
 
@@ -88,7 +91,7 @@ class ofApp : public ofBaseApp{
         float threshold;
         ofxCv::ContourFinder contourFinder;
         bool showLabels;
-        float lowestVelocityX = 0, lowestVelocityY = 0, highestVelocityX = 0, highestVelocityY = 0;
+        float lowestVelocityX = 999, lowestVelocityY = 999, highestVelocityX = 0, highestVelocityY = 0;
         std::vector<ofPoint> lastCenter;
     
         // LOG SETUP

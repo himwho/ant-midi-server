@@ -13,6 +13,9 @@
 #include "ofxOsc.h"
 #include <atomic>
 
+#define LOGMIDI
+//#define FULLDEBUG
+
 // send host (aka ip address)
 //#define IPHOST "127.0.0.1"
 #define IPHOST "3.94.213.186"
@@ -39,6 +42,9 @@ public:
     }
     
     void outputDeviceValueOSC(int deviceID, int sensorID, int deviceValue, int lastDeviceValue, int deviceValueMin, int deviceValueMax, int bpm, int channel){
+#if defined(FULLDEBUG) || defined(LOGMIDI)
+        std::cout << "[MIDI] ON | Device: " << deviceID << ", Sensor: " << sensorID << ", Value: " << deviceValue << ", LastValue: " << lastDeviceValue << ", MinValue: " << deviceValueMin << ", MaxValue: " << deviceValueMax << ", BPM: " << bpm << ", Channel: " << channel << std::endl;
+#endif
         this->deviceId = deviceID;
         this->sensorId = sensorID;
         this->value = deviceValue;
@@ -66,6 +72,9 @@ public:
         m.addInt32Arg(rawMessage[1]);
         m.addInt32Arg(rawMessage[2]);
         sender.sendMessage(m, false);
+#if defined(FULLDEBUG) || defined(LOGMIDI)
+        std::cout << "[MIDI] OFF | Device: " << deviceID << ", Sensor: " << sensorID << ", Held: " << timeHeld << ", Pitch: " << pitch << ", Channel: " << channel << std::endl;
+#endif
     }
 
     void stop(){
@@ -95,6 +104,11 @@ public:
         m.addInt32Arg(rawMessage[2]);
         sender.sendMessage(m, false);
         
+#if defined(FULLDEBUG) || defined(LOGMIDI)
+        //std::cout << "[MIDI] MESSAGE | Device: " << deviceId << ", Pitch: " << pitch << ", Velocity: " << velocity << ", Channel: " << MIDI_NOTE_ON+(chan-1) << std::endl;
+        std::cout << "[MIDI] RAW MESSAGE: " << m.getAddress() << ", " << m.getArgAsInt(0) << ", " << m.getArgAsInt(1) << ", " << m.getArgAsInt(2) << std::endl;
+#endif
+
         int msHoldNote = std::abs(value - lastvalue) * msBPM;
         oscNoteOff(deviceId, sensorId, msHoldNote, chan, pitch);
         played = true;
