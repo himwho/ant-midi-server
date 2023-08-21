@@ -183,6 +183,11 @@ void ofApp::update(){
                             if (deviceData[j].numberOfSensors == 10) {
                                 deviceData[j].deviceValues[3] = 0;
                             }
+                            if (deviceData[j].numberOfSensors == 11) {
+                                if (std::abs(deviceData[j].deviceValues[9] - deviceData[j].lastDeviceValues[9]) > 20){
+                                    deviceData[j].deviceValues[9] = std::abs(deviceData[j].deviceValues[9]*0.1); // reduce the sensitivity to 10%
+                                }
+                            }
                             
                             updateDeltaValues(j, deviceData[j].deviceValues, deviceData[j].lastDeviceValues);
                             updateMinMaxValues(j, deviceData[j].deviceValues);
@@ -289,10 +294,12 @@ void ofApp::update(){
                     // only add a new osc player if there is found velocity to the movement
                     if (velocity.x > 0 || velocity.y > 0) {
                         if (std::fabs(velocity.x) < lowestVelocityX) {
-                            lowestVelocityX = std::fabs(velocity.x);
+                            // cannot allow the mins to become < 1
+                            lowestVelocityX = std::max(std::abs((int)velocity.x), 1);
                         }
                         if (std::fabs(velocity.y) < lowestVelocityY) {
-                            lowestVelocityY = std::fabs(velocity.y);
+                            // cannot allow the mins to become < 1
+                            lowestVelocityY = std::max(std::abs((int)velocity.y), 1);
                         }
                         if (std::fabs(velocity.x) > highestVelocityX) {
                             highestVelocityX = std::fabs(velocity.x);
