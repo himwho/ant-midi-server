@@ -57,7 +57,7 @@
 </head>
 
 <body>
-  <div id="app">
+  <div id="app" class="left-col" style="float:left;width:33%;margin:auto;order:1;">
     <section class="section">
       <div class="container">
         <h1 class="title">🎛️ 🐜</h1>
@@ -151,6 +151,17 @@
         </div>
       </div>
     </section>
+  </div>
+
+  <div class="right-col" style="position:relative;float:right;width:66%;margin:auto;order:2;">
+    <div style="margin: 0;position: absolute;top: 50%;-ms-transform: translateY(25%);transform: translateY(25%);">
+      <iframe
+        src="https://player.twitch.tv/?channel=auntcolony&parent=auntcolony.com&muted=true"
+        height="720"
+        width="960"
+        allowfullscreen=false>
+      </iframe>
+    </div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
