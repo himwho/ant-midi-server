@@ -230,6 +230,78 @@
     </section>
   </div>
 
+  <div class="encryption-section" style="clear:both; padding: 20px;">
+    <section class="section">
+      <div class="container">
+        <h2 class="title">🔒 Ant Colony Encryption</h2>
+        
+        <div class="columns">
+          <div class="column">
+            <div class="box">
+              <h3 class="subtitle">Encrypt File</h3>
+              <div class="field">
+                <div class="file has-name">
+                  <label class="file-label">
+                    <input class="file-input" type="file" id="fileToEncrypt">
+                    <span class="file-cta">
+                      <span class="file-label">Choose file...</span>
+                    </span>
+                    <span class="file-name" id="encryptFileName">
+                      No file selected
+                    </span>
+                  </label>
+                </div>
+              </div>
+              <button class="button is-primary" id="encryptButton" disabled>
+                Encrypt with Current Hash
+              </button>
+            </div>
+          </div>
+
+          <div class="column">
+            <div class="box">
+              <h3 class="subtitle">Decrypt File</h3>
+              <div class="field">
+                <div class="file has-name">
+                  <label class="file-label">
+                    <input class="file-input" type="file" id="fileToDecrypt">
+                    <span class="file-cta">
+                      <span class="file-label">Choose encrypted file...</span>
+                    </span>
+                    <span class="file-name" id="decryptFileName">
+                      No file selected
+                    </span>
+                  </label>
+                </div>
+              </div>
+              <button class="button is-info" id="decryptButton" disabled>
+                Decrypt File
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="notification is-info is-light">
+            <h4>How it works:</h4>
+            <ol>
+              <li>Every minute, a new encryption hash is generated based on the ant colony's activity</li>
+              <li>Files are encrypted using the current hash when you click "Encrypt"</li>
+              <li>To decrypt, you'll need access to the same hash that was used for encryption</li>
+              <li>Hashes are stored for approximately 16 hours</li>
+              <li>Share both the encrypted file AND its timestamp for others to decrypt</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="current-hash" v-if="currentHash">
+          <p>Current Hash: <code>{{ currentHash.value }}</code></p>
+          <p>Updated: {{ new Date(currentHash.timestamp).toLocaleString() }}</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
   <script src="public/js/encryption.js"></script>
