@@ -294,9 +294,9 @@
           </div>
         </div>
 
-        <div class="current-hash" v-if="currentHash">
-          <p>Current Hash: <code>{{ currentHash.value }}</code></p>
-          <p>Updated: {{ new Date(currentHash.timestamp).toLocaleString() }}</p>
+        <div class="current-hash">
+          <p>Current Hash: <code id="currentHashDisplay">Loading...</code></p>
+          <p>Updated: <span id="currentHashTimestamp">Loading...</span></p>
         </div>
       </div>
     </section>
@@ -350,6 +350,28 @@
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     });
+    
+    // Update hash display elements
+    function updateHashDisplay() {
+      if (window.securityApp && window.securityApp.currentSecurityHash) {
+        const hashDisplay = document.getElementById('currentHashDisplay');
+        const timestampDisplay = document.getElementById('currentHashTimestamp');
+        
+        if (hashDisplay) {
+          hashDisplay.textContent = window.securityApp.currentSecurityHash;
+        }
+        
+        if (timestampDisplay) {
+          timestampDisplay.textContent = new Date(window.securityApp.lastHashUpdate).toLocaleString();
+        }
+      }
+    }
+    
+    // Update hash display every second
+    setInterval(updateHashDisplay, 1000);
+    
+    // Initial update after a short delay to ensure Vue app is loaded
+    setTimeout(updateHashDisplay, 2000);
   </script>
 </body>
 

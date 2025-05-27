@@ -185,7 +185,7 @@ class SecurityHashGenerator {
 }
 
 // Initialize Vue app for security dashboard
-const securityApp = new Vue({
+const securityApp = window.securityApp = new Vue({
     el: '#securityApp',
     data: {
         hashGenerator: new SecurityHashGenerator(),
