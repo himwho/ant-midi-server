@@ -9,6 +9,11 @@ var remote_osc_ip;
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
 });
+
+app.get('/security', function(req, res){
+  res.sendFile(__dirname + '/security.html');
+});
+
 app.use('/public', express.static(__dirname + '/public'));
 
 var udp_server = dgram.createSocket('udp4', function(msg, rinfo) {
@@ -34,6 +39,13 @@ var udp_server = dgram.createSocket('udp4', function(msg, rinfo) {
     y: parseInt(osc_message.args[1].value) || 0,
     z: parseInt(osc_message.args[2].value) || 0
   });
+
+  if (osc_message.address === "/hash") {
+    io.emit('hash', {
+      value: osc_message.args[0].value,
+      timestamp: Date.now()
+    });
+  }
 
 });
 

@@ -18,7 +18,7 @@
 
 // send host (aka ip address)
 //#define IPHOST "127.0.0.1"
-#define IPHOST "3.94.213.186"
+#define IPHOST "100.25.29.52"
 
 /// send port
 #define PORT 9998

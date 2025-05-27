@@ -4,8 +4,10 @@
 #include "ofxSerial.h"
 #include "ofxCv.h"
 #include "ofxGui.h"
+#include "ofxOsc.h"
 #include "OSCPlayer.h"
 #include "VideoHandler.h"
+#include "Hash.h"
 
 #define LOGMIDI
 //#define LOGTIME
@@ -79,6 +81,7 @@ class ofApp : public ofBaseApp{
     
         // OSC SETUP
         std::vector<unique_ptr<OSCPlayerObject>> oscPlayers;
+        ofxOscSender hashSender;  // OSC sender for hash messages
     
         // VIDEO SETUP
         ofVideoGrabber vidGrabber;
@@ -96,4 +99,8 @@ class ofApp : public ofBaseApp{
     
         // LOG SETUP
         void writeToLog(int deviceID);
+        
+        // HASH GENERATION SETUP
+        HashObject hashGenerator;
+        std::string currentHash;
 };

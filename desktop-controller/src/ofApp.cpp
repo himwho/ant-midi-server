@@ -104,6 +104,9 @@ void ofApp::setup(){
     contourFinder.getTracker().setPersistence(15);
     contourFinder.getTracker().setMaximumDistance(50);
     showLabels = false;
+    
+    // Initialize OSC sender for hash messages
+    hashSender.setup(IPHOST, PORT);
 }
 
 void ofApp::setupDevice(int deviceID){
@@ -341,6 +344,16 @@ void ofApp::update(){
     millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     cout << "[TIME] End of update loop : " << millisec_since_epoch << endl;
 #endif
+
+    if (hashGenerator.shouldUpdateHash()) {
+        currentHash = hashGenerator.generateHash(deviceData, lastCenter);
+        
+        // Send hash to nodejs server via OSC
+        ofxOscMessage m;
+        m.setAddress("/hash");
+        m.addStringArg(currentHash);
+        hashSender.sendMessage(m, false);
+    }
 }
 
 void ofApp::writeToLog(int deviceID){
