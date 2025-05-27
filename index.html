@@ -356,24 +356,6 @@
             this.handleMIDIMessage(data);
             this.messages = [data, ...this.messages.slice(0, 4)];
           });
-          
-          // Listen for hash updates from security system
-          socket.on('hash', (hashData) => {
-            this.antCrypt.updateHash(hashData.value);
-            this.currentHash = {
-              value: hashData.value,
-              timestamp: hashData.timestamp
-            };
-          });
-          
-          // Handle connection errors
-          socket.on('connect_error', (error) => {
-            console.warn('Socket connection error:', error);
-          });
-          
-          socket.on('disconnect', (reason) => {
-            console.warn('Socket disconnected:', reason);
-          });
         },
         onMIDISuccess(midiAccess) {
           console.log('MIDI access granted:', midiAccess);
@@ -463,56 +445,6 @@
             this.synth.triggerAttack(note, now);
           }
         },
-        async handleFileEncryption(file) {
-          try {
-            const result = await this.antCrypt.encryptFile(file);
-            
-            // Generate download
-            const url = URL.createObjectURL(result.file);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `encrypted_${file.name}`;
-            
-            // Add timestamp to filename
-            const timestamp = new Date(result.timestamp).toISOString();
-            a.download = `encrypted_${timestamp}_${file.name}`;
-            
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-          } catch (error) {
-            console.error('Encryption failed:', error);
-            alert('Encryption failed: ' + error.message);
-          }
-        },
-
-        async handleFileDecryption(file) {
-          try {
-            // Extract timestamp from filename
-            const match = file.name.match(/encrypted_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z)/);
-            if (!match) {
-              throw new Error('Invalid encrypted file name - missing timestamp');
-            }
-            const timestamp = new Date(match[1]).getTime();
-
-            const decryptedFile = await this.antCrypt.decryptFile(file, timestamp);
-            
-            // Generate download
-            const url = URL.createObjectURL(decryptedFile);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = file.name.replace(/encrypted_\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z_/, 'decrypted_');
-            
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-          } catch (error) {
-            console.error('Decryption failed:', error);
-            alert('Decryption failed: ' + error.message);
-          }
-        }
       },
       created() {
         this.initMidi();
@@ -531,38 +463,6 @@
         synthRelease() {
           this.synth.envelope.release = this.synthRelease;
         },
-      },
-      mounted() {
-        // Setup file encryption handlers
-        document.getElementById('fileToEncrypt').addEventListener('change', (e) => {
-          const file = e.target.files[0];
-          if (file) {
-            document.getElementById('encryptFileName').textContent = file.name;
-            document.getElementById('encryptButton').disabled = false;
-          }
-        });
-
-        document.getElementById('encryptButton').addEventListener('click', () => {
-          const file = document.getElementById('fileToEncrypt').files[0];
-          if (file) {
-            this.handleFileEncryption(file);
-          }
-        });
-
-        document.getElementById('fileToDecrypt').addEventListener('change', (e) => {
-          const file = e.target.files[0];
-          if (file) {
-            document.getElementById('decryptFileName').textContent = file.name;
-            document.getElementById('decryptButton').disabled = false;
-          }
-        });
-
-        document.getElementById('decryptButton').addEventListener('click', () => {
-          const file = document.getElementById('fileToDecrypt').files[0];
-          if (file) {
-            this.handleFileDecryption(file);
-          }
-        });
       }
     })
   </script>
