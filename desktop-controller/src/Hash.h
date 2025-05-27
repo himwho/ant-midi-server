@@ -8,17 +8,15 @@
 #ifndef Hash_h
 #define Hash_h
 
+#include "ofMain.h"
 #include <stdint.h>
 #include <atomic>
 #include <vector>
 #include <string>
 #include <sstream>
 
-class AntDevice {
-public:
-    std::vector<int> deviceValues;
-    std::vector<int> deltaValues;
-};
+// Forward declaration - AntDevice is defined in ofApp.h
+struct AntDevice;
 
 class HashObject: public ofThread{
 public:
@@ -38,7 +36,8 @@ public:
     }
     
     // Generates a hash from combined sensor and video tracking data
-    std::string generateHash(const std::vector<AntDevice>& deviceData, const std::vector<ofPoint>& trackedPoints) {
+    template<typename DeviceType>
+    std::string generateHash(const std::vector<DeviceType>& deviceData, const std::vector<ofPoint>& trackedPoints) {
         std::string combinedData;
         
         // Add timestamp to make each hash unique even with same input
