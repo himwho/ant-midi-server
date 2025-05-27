@@ -1,5 +1,95 @@
-# ant-midi-server
-Dockerized server for listening to LAN MIDI and broadcasting it to WAN
+# Ant MIDI Server
+
+A Node.js server that receives OSC messages from ant colony sensors and converts them to MIDI output, with real-time web interface and encryption capabilities.
+
+## Features
+
+- OSC to MIDI conversion
+- Real-time web interface with Vue.js
+- MIDI device selection and output
+- Web Audio API synthesizer
+- Security dashboard with hash generation
+- File encryption using ant-generated entropy
+- Socket.io real-time communication
+
+## Installation
+
+```bash
+npm install
+npm start
+```
+
+The server will start on port 3000 and listen for OSC messages on port 9998.
+
+## Troubleshooting
+
+### Common Issues
+
+1. **"AntCrypt is not defined" error**
+   - Make sure `public/js/encryption.js` is loaded before the main Vue app
+   - Check browser console for script loading errors
+
+2. **MIDI devices not showing**
+   - Ensure browser supports Web MIDI API (Chrome/Edge recommended)
+   - Check browser permissions for MIDI access
+   - Look for MIDI access logs in browser console
+
+3. **Socket.io connection errors (502)**
+   - Check if server is running on correct port
+   - Verify proxy/hosting configuration
+   - Updated to socket.io v4.7.5 for better compatibility
+
+4. **Vue template variables showing as `{{ }}`**
+   - Indicates Vue.js failed to initialize
+   - Check for JavaScript errors in console
+   - Ensure all required scripts are loaded
+
+5. **AudioContext warnings**
+   - Modern browsers require user interaction before audio
+   - Click on the page before using audio features
+   - Consider using AudioWorkletNode instead of ScriptProcessorNode
+
+### Development
+
+- Main server: `main.js`
+- Frontend: `index.html`
+- Security dashboard: `security.html`
+- Client scripts: `public/js/`
+
+### File Structure
+
+```
+├── main.js              # Express server with Socket.io and OSC
+├── index.html           # Main web interface
+├── security.html        # Security dashboard
+├── package.json         # Dependencies
+└── public/
+    ├── css/
+    └── js/
+        ├── encryption.js      # AntCrypt class for file encryption
+        ├── midi.js           # MIDI handling
+        ├── security-dashboard.js # Security hash generation
+        ├── synth.js          # Web Audio synthesizer
+        └── ui.js             # UI utilities
+```
+
+## API Endpoints
+
+- `GET /` - Main dashboard
+- `GET /security` - Security dashboard
+- `GET /public/*` - Static assets
+
+## Socket.io Events
+
+- `osc` - OSC message data (x, y, z values)
+- `internal` - Internal system data
+- `hash` - Security hash updates
+
+## OSC Integration
+
+Send OSC messages to port 9998 with 3 float arguments:
+- `/default` - General sensor data
+- `/hash` - Security hash updates
 
 ## Components
  - C++ OpenFrameworks controller app for handling and broadcasting multiple ant colonie: [Controller Directory](desktop-controller)
