@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "body-parse": "^0.1.0",
-    "express": "^4.19.2",
+    "express": "^4.20.0",
     "osc-min": "^1.1.1",
     "socket.io": "^4.7.5",
     "webmidi": "^2.5.0"
