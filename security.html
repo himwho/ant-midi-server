@@ -274,6 +274,13 @@
                   </label>
                 </div>
               </div>
+              <div class="field">
+                <label class="label">Decryption Hash (optional)</label>
+                <div class="control">
+                  <input class="input" type="text" id="decryptHashInput" placeholder="Paste hash here or leave empty to auto-detect">
+                </div>
+                <p class="help">If provided, this hash will be used instead of timestamp-based lookup</p>
+              </div>
               <button class="button is-info" id="decryptButton" disabled>
                 Decrypt File
               </button>
@@ -285,11 +292,17 @@
           <div class="notification is-info is-light">
             <h4>How it works:</h4>
             <ol>
-              <li>Every minute, a new encryption hash is generated based on the ant colony's activity</li>
+              <li>Every second, a new encryption hash is generated based on the ant colony's activity</li>
               <li>Files are encrypted using the current hash when you click "Encrypt"</li>
-              <li>To decrypt, you'll need access to the same hash that was used for encryption</li>
-              <li>Hashes are stored for approximately 16 hours</li>
-              <li>Share both the encrypted file AND its timestamp for others to decrypt</li>
+              <li>To decrypt, you can either:
+                <ul>
+                  <li><strong>Auto-detect:</strong> Use files with timestamps in the filename</li>
+                  <li><strong>Manual hash:</strong> Paste the exact hash used for encryption</li>
+                  <li><strong>Timestamp lookup:</strong> Enter the encryption timestamp manually</li>
+                </ul>
+              </li>
+              <li>Hashes are stored for approximately 16 hours for automatic lookup</li>
+              <li>Share both the encrypted file AND either the hash or timestamp for others to decrypt</li>
             </ol>
           </div>
         </div>

@@ -105,6 +105,7 @@ class EncryptionUI {
 
     async handleDecryption() {
         const fileInput = document.getElementById('fileToDecrypt');
+        const hashInput = document.getElementById('decryptHashInput');
         const file = fileInput.files[0];
         
         if (!file) {
@@ -112,27 +113,46 @@ class EncryptionUI {
             return;
         }
 
-        // Try to extract timestamp from filename or ask user
-        let timestamp = this.extractTimestampFromFilename(file.name);
-        
-        if (!timestamp) {
-            const userInput = prompt(`Could not extract timestamp from filename "${file.name}".\n\nEnter the encryption timestamp (or leave empty to try recent hashes):\n\nTip: Check your encryption records below for the correct timestamp.`);
-            if (userInput) {
-                timestamp = parseInt(userInput);
-                if (isNaN(timestamp)) {
-                    this.showNotification('Invalid timestamp format. Please enter a valid number.', 'error');
-                    return;
-                }
+        // Check if user provided a manual hash
+        const manualHash = hashInput.value.trim();
+        let timestamp = null;
+        let useManualHash = false;
+
+        if (manualHash) {
+            // Validate hash format (should be 64 character hex string)
+            if (!/^[a-fA-F0-9]{64}$/.test(manualHash)) {
+                this.showNotification('Invalid hash format. Hash should be 64 hexadecimal characters.', 'error');
+                return;
             }
+            useManualHash = true;
+            this.showNotification('Using manually provided hash for decryption', 'info');
         } else {
-            this.showNotification(`Extracted timestamp ${timestamp} from filename`, 'info');
+            // Try to extract timestamp from filename
+            timestamp = this.extractTimestampFromFilename(file.name);
+            
+            if (!timestamp) {
+                const userInput = prompt(`Could not extract timestamp from filename "${file.name}".\n\nEnter the encryption timestamp (or leave empty to try recent hashes):\n\nTip: Check your encryption records below for the correct timestamp.`);
+                if (userInput) {
+                    timestamp = parseInt(userInput);
+                    if (isNaN(timestamp)) {
+                        this.showNotification('Invalid timestamp format. Please enter a valid number.', 'error');
+                        return;
+                    }
+                }
+            } else {
+                this.showNotification(`Extracted timestamp ${timestamp} from filename`, 'info');
+            }
         }
 
         try {
             this.showNotification('Decrypting file...', 'info');
             
             let decryptedBlob;
-            if (timestamp) {
+            if (useManualHash) {
+                // Use manual hash for decryption
+                decryptedBlob = await this.decryptWithManualHash(file, manualHash);
+            } else if (timestamp) {
+                // Use timestamp-based lookup
                 decryptedBlob = await this.antCrypt.decryptFile(file, timestamp);
             } else {
                 // Try recent hashes if no timestamp provided
@@ -150,14 +170,35 @@ class EncryptionUI {
 
             this.showNotification('File decrypted successfully!', 'success');
             
-            // Reset file input
+            // Reset inputs
             fileInput.value = '';
+            hashInput.value = '';
             document.getElementById('decryptFileName').textContent = 'No file selected';
             document.getElementById('decryptButton').disabled = true;
 
         } catch (error) {
             console.error('Decryption error:', error);
             this.showNotification(`Decryption failed: ${error.message}`, 'error');
+        }
+    }
+
+    async decryptWithManualHash(file, hash) {
+        // Create a temporary hash entry for decryption
+        const tempHashEntry = {
+            hash: hash,
+            timestamp: Date.now() // Use current time as placeholder
+        };
+        
+        // Temporarily add to hash history for decryption
+        this.antCrypt.hashHistory.unshift(tempHashEntry);
+        
+        try {
+            // Use the AntCrypt decryptFile method with the temp timestamp
+            const decryptedBlob = await this.antCrypt.decryptFile(file, tempHashEntry.timestamp);
+            return decryptedBlob;
+        } finally {
+            // Remove the temporary hash entry
+            this.antCrypt.hashHistory.shift();
         }
     }
 
@@ -213,6 +254,9 @@ class EncryptionUI {
                         <button class="button is-small is-info" onclick="encryptionUI.copyDecryptionInfo('${record.hash}', ${record.timestamp})">
                             📋 Copy Info
                         </button>
+                        <button class="button is-small is-primary" onclick="encryptionUI.copyHashOnly('${record.hash}')">
+                            🔐 Copy Hash
+                        </button>
                         <button class="button is-small is-danger" onclick="encryptionUI.deleteRecord(${record.id})">
                             🗑️
                         </button>
@@ -225,7 +269,21 @@ class EncryptionUI {
     }
 
     copyDecryptionInfo(hash, timestamp) {
-        const info = `Decryption Info:\nHash: ${hash}\nTimestamp: ${timestamp}\nDate: ${new Date(timestamp).toLocaleString()}`;
+        const info = `🔐 Ant Colony Decryption Info:
+
+Hash: ${hash}
+Timestamp: ${timestamp}
+Date: ${new Date(timestamp).toLocaleString()}
+
+📋 Quick Copy (Hash Only):
+${hash}
+
+💡 Instructions:
+1. Share the encrypted file (.ant) with someone
+2. Also share this hash with them
+3. They can paste the hash in the "Decryption Hash" field
+4. Or use the timestamp if they prefer automatic lookup`;
+
         navigator.clipboard.writeText(info).then(() => {
             this.showNotification('Decryption info copied to clipboard!', 'success');
         }).catch(() => {
@@ -237,6 +295,21 @@ class EncryptionUI {
             document.execCommand('copy');
             document.body.removeChild(textArea);
             this.showNotification('Decryption info copied to clipboard!', 'success');
+        });
+    }
+
+    copyHashOnly(hash) {
+        navigator.clipboard.writeText(hash).then(() => {
+            this.showNotification('Hash copied to clipboard! Paste it in the decryption field.', 'success');
+        }).catch(() => {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = hash;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            this.showNotification('Hash copied to clipboard! Paste it in the decryption field.', 'success');
         });
     }
 
