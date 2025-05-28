@@ -14,6 +14,10 @@ app.get('/security', function(req, res){
   res.sendFile(__dirname + '/security.html');
 });
 
+app.get('/test-encryption', function(req, res){
+  res.sendFile(__dirname + '/test-encryption.html');
+});
+
 app.use('/public', express.static(__dirname + '/public'));
 
 var udp_server = dgram.createSocket('udp4', function(msg, rinfo) {

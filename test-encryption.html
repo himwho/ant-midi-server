@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Encryption Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        button { padding: 10px; margin: 5px; }
+        .result { margin: 10px 0; padding: 10px; background: #f0f0f0; }
+    </style>
+</head>
+<body>
+    <h1>🔐 Ant Colony Encryption Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Encryption Logic</h2>
+        <button onclick="testEncryption()">Test Encryption/Decryption</button>
+        <div id="testResult" class="result"></div>
+    </div>
+
+    <script src="public/js/encryption.js"></script>
+    <script>
+        async function testEncryption() {
+            const resultDiv = document.getElementById('testResult');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                // Create test instance
+                const antCrypt = new AntCrypt();
+                
+                // Generate test hash
+                const testHash = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+                    .map(b => b.toString(16).padStart(2, '0')).join('');
+                antCrypt.updateHash(testHash);
+                
+                // Create test file
+                const testContent = 'Hello, this is a test file for encryption!';
+                const testFile = new File([testContent], 'test.txt', { type: 'text/plain' });
+                
+                resultDiv.innerHTML += '<br>✅ Created test file: ' + testFile.name;
+                resultDiv.innerHTML += '<br>🔐 Hash: ' + testHash.substring(0, 16) + '...';
+                
+                // Encrypt file
+                const encryptResult = await antCrypt.encryptFile(testFile);
+                resultDiv.innerHTML += '<br>✅ Encryption successful!';
+                resultDiv.innerHTML += '<br>📦 Encrypted size: ' + encryptResult.file.size + ' bytes';
+                
+                // Decrypt file
+                const decryptedBlob = await antCrypt.decryptFile(encryptResult.file, encryptResult.timestamp);
+                const decryptedText = await decryptedBlob.text();
+                
+                resultDiv.innerHTML += '<br>✅ Decryption successful!';
+                resultDiv.innerHTML += '<br>📄 Decrypted content: "' + decryptedText + '"';
+                
+                // Verify content matches
+                if (decryptedText === testContent) {
+                    resultDiv.innerHTML += '<br>🎉 SUCCESS: Content matches perfectly!';
+                } else {
+                    resultDiv.innerHTML += '<br>❌ ERROR: Content does not match!';
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML += '<br>❌ Error: ' + error.message;
+                console.error('Test error:', error);
+            }
+        }
+    </script>
+</body>
+</html> 

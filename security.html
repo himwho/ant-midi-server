@@ -298,6 +298,17 @@
           <p>Current Hash: <code id="currentHashDisplay">Loading...</code></p>
           <p>Updated: <span id="currentHashTimestamp">Loading...</span></p>
         </div>
+
+        <!-- Encryption Records Section -->
+        <div class="box" style="margin-top: 20px;">
+          <h3 class="subtitle">🗂️ Encryption Records</h3>
+          <div id="encryptionRecords" style="max-height: 300px; overflow-y: auto;">
+            <p class="has-text-grey">No encryption records yet...</p>
+          </div>
+          <button class="button is-small is-warning" id="clearRecordsButton">
+            Clear Records
+          </button>
+        </div>
       </div>
     </section>
   </div>
@@ -306,6 +317,7 @@
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
   <script src="public/js/encryption.js"></script>
   <script src="public/js/security-dashboard.js"></script>
+  <script src="public/js/encryption-ui.js"></script>
   
   <script>
     // Matrix rain effect

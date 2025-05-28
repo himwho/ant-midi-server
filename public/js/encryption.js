@@ -62,7 +62,8 @@ class AntCrypt {
 
         return {
             file: encryptedFile,
-            timestamp: this.currentHash.timestamp
+            timestamp: this.currentHash.timestamp,
+            hash: this.currentHash.hash
         };
     }
 
