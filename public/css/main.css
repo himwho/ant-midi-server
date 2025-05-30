@@ -16,3 +16,61 @@
 	opacity: 0;
   transform: translateY(5px);
 }
+
+/* Relay Mode Styles */
+body.relay-mode .left-col {
+  width: 50% !important;
+  float: left !important;
+  max-width: none;
+  margin: 0;
+}
+
+body.relay-mode .right-col {
+  width: 50% !important;
+  float: right !important;
+}
+
+body.relay-mode .title {
+  text-align: center;
+}
+
+body.relay-mode .security-dashboard {
+  display: none !important;
+}
+
+body.relay-mode .midi-messages-table {
+  display: none !important;
+}
+
+body.relay-mode .synth-controls {
+  display: none !important;
+}
+
+body.relay-mode .section {
+  padding: 2rem 1.5rem;
+}
+
+/* Relay mode indicator */
+body.relay-mode::before {
+  content: "🎛️ RELAY MODE ACTIVE";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #ff6b6b;
+  color: white;
+  text-align: center;
+  padding: 0.5rem;
+  font-weight: bold;
+  z-index: 9999;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+body.relay-mode .section {
+  margin-top: 3rem; /* Account for the relay mode indicator */
+}
