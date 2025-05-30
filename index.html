@@ -57,121 +57,126 @@
 </head>
 
 <body>
-  <div id="app" class="left-col" style="float:left;width:33%;margin:auto;order:1;">
-    <section class="section">
-      <div class="container">
-        <h1 class="title">🎛️ 🐜</h1>
-        <div class="field is-grouped security-dashboard" style="margin-bottom: 20px;">
-          <p class="control">
-            <a class="button is-small is-info" href="/security">
-              🔐 Security Dashboard
-            </a>
-          </p>
-        </div>
-        <div class="columns">
-          <div class="column">
-            <div class="field">
-              <div class="control">
-                <div class="select">
-                  <select v-on:change='onOutputChange' v-model='midiOutIndex'>
-                    <option value="-1">Select Output</option>
-                    <option v-for='name, i in outputList' v-bind:value='i'>{{ name }}</option>
-                    <option value='synth'>Web Synth</option>
-                  </select>
+  <div id="app">
+    <div class="left-col" style="float:left;width:33%;margin:auto;order:1;">
+      <section class="section">
+        <div class="container">
+          <h1 class="title">🎛️ 🐜</h1>
+          <div class="field is-grouped security-dashboard" style="margin-bottom: 20px;">
+            <p class="control">
+              <a class="button is-small is-info" href="/security">
+                🔐 Security Dashboard
+              </a>
+            </p>
+          </div>
+          <div class="columns">
+            <div class="column">
+              <div class="field">
+                <div class="control">
+                  <div class="select">
+                    <select v-on:change='onOutputChange' v-model='midiOutIndex'>
+                      <option value="-1">Select Output</option>
+                      <option v-for='name, i in outputList' v-bind:value='i'>{{ name }}</option>
+                      <option value='synth'>Web Synth</option>
+                    </select>
+                  </div>
                 </div>
-              </div>
-              <table class="table midi-messages-table">
-                <thead>
-                  <tr>
-                    <th>Channel</th>
-                    <th>Command</th>
-                    <th>Value</th>
-                  </tr>
-                </thead>
-                <tbody name="list" is="transition-group">
-                  <template v-for='message in messages'>
-                    <tr v-bind:key="message.id" class="list-item">
-                      <td>{{ getChannel(message) }}</td>
-                      <td>{{ getCommand(message) }}</td>
-                      <td>{{ getNote(message) }}</td>
+                <table class="table midi-messages-table">
+                  <thead>
+                    <tr>
+                      <th>Channel</th>
+                      <th>Command</th>
+                      <th>Value</th>
                     </tr>
-                  </template>
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody name="list" is="transition-group">
+                    <template v-for='message in messages'>
+                      <tr v-bind:key="message.id" class="list-item">
+                        <td>{{ getChannel(message) }}</td>
+                        <td>{{ getCommand(message) }}</td>
+                        <td>{{ getNote(message) }}</td>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="column synth-controls">
+              <transition name="slide-fade">
+                <div class="columns" v-if='midiOutIndex === "synth"'>
+                  <div class="column">
+                    <div class="field">
+                      <label class="label">Attack: {{ synthAttack }}</label>
+                      <div class="control">
+                        <input type="range" v-model.number='synthAttack' min="0" max="2" step=".2"
+                          v-on:input="attackActive = true" v-on:mouseup="attackActive = false">
+                      </div>
+                    </div>
+                    <div class="field">
+                      <label class="label">Decay: {{ synthDecay }} </label>
+                      <div class="control">
+                        <input type="range" v-model.number='synthDecay' min="0" max="2" step=".2"
+                          v-on:input="decayActive = true" v-on:mouseup="decayActive = false">
+                      </div>
+                    </div>
+                    <div class="field">
+                      <label class="label">Sustain: {{ synthSustain }}</label>
+                      <div class="control">
+                        <input type="range" v-model.number='synthSustain' min="0" max="1" step=".1"
+                          v-on:input="sustainActive = true" v-on:mouseup="sustainActive = false">
+                      </div>
+                    </div>
+                    <div class="field">
+                      <label class="label">Release: {{ synthRelease }}</label>
+                      <div class="control">
+                        <input type="range" v-model.number='synthRelease' min="0" max="5" step=".1"
+                          v-on:input="releaseActive = true" v-on:mouseup="releaseActive = false">
+                      </div>
+                    </div>
+                    <div class="field is-grouped">
+                      <button class="button is-small" v-on:mouseup="mouseUp"
+                        v-on:mousedown="() => mouseDown('A2')">A</button>
+                      <button class="button is-small" v-on:mouseup="mouseUp"
+                        v-on:mousedown="() => mouseDown('B2')">B</button>
+                      <button class="button is-small" v-on:mouseup="mouseUp"
+                        v-on:mousedown="() => mouseDown('C3')">C</button>
+                      <button class="button is-small" v-on:mouseup="mouseUp"
+                        v-on:mousedown="() => mouseDown('D3')">D</button>
+                      <button class="button is-small" v-on:mouseup="mouseUp"
+                        v-on:mousedown="() => mouseDown('E3')">E</button>
+                      <button class="button is-small" v-on:mouseup="mouseUp"
+                        v-on:mousedown="() => mouseDown('F3')">F</button>
+                      <button class="button is-small" v-on:mouseup="mouseUp"
+                        v-on:mousedown="() => mouseDown('G3')">G</button>
+                    </div>
+                  </div>
+                  <div class="column">
+                    <pre>{{ liveAdsr }}</pre>
+                  </div>
+                </div>
+              </transition>
             </div>
           </div>
-          <div class="column synth-controls">
-            <transition name="slide-fade">
-              <div class="columns" v-if='midiOutIndex === "synth"'>
-                <div class="column">
-                  <div class="field">
-                    <label class="label">Attack: {{ synthAttack }}</label>
-                    <div class="control">
-                      <input type="range" v-model.number='synthAttack' min="0" max="2" step=".2"
-                        v-on:input="attackActive = true" v-on:mouseup="attackActive = false">
-                    </div>
-                  </div>
-                  <div class="field">
-                    <label class="label">Decay: {{ synthDecay }} </label>
-                    <div class="control">
-                      <input type="range" v-model.number='synthDecay' min="0" max="2" step=".2"
-                        v-on:input="decayActive = true" v-on:mouseup="decayActive = false">
-                    </div>
-                  </div>
-                  <div class="field">
-                    <label class="label">Sustain: {{ synthSustain }}</label>
-                    <div class="control">
-                      <input type="range" v-model.number='synthSustain' min="0" max="1" step=".1"
-                        v-on:input="sustainActive = true" v-on:mouseup="sustainActive = false">
-                    </div>
-                  </div>
-                  <div class="field">
-                    <label class="label">Release: {{ synthRelease }}</label>
-                    <div class="control">
-                      <input type="range" v-model.number='synthRelease' min="0" max="5" step=".1"
-                        v-on:input="releaseActive = true" v-on:mouseup="releaseActive = false">
-                    </div>
-                  </div>
-                  <div class="field is-grouped">
-                    <button class="button is-small" v-on:mouseup="mouseUp"
-                      v-on:mousedown="() => mouseDown('A2')">A</button>
-                    <button class="button is-small" v-on:mouseup="mouseUp"
-                      v-on:mousedown="() => mouseDown('B2')">B</button>
-                    <button class="button is-small" v-on:mouseup="mouseUp"
-                      v-on:mousedown="() => mouseDown('C3')">C</button>
-                    <button class="button is-small" v-on:mouseup="mouseUp"
-                      v-on:mousedown="() => mouseDown('D3')">D</button>
-                    <button class="button is-small" v-on:mouseup="mouseUp"
-                      v-on:mousedown="() => mouseDown('E3')">E</button>
-                    <button class="button is-small" v-on:mouseup="mouseUp"
-                      v-on:mousedown="() => mouseDown('F3')">F</button>
-                    <button class="button is-small" v-on:mouseup="mouseUp"
-                      v-on:mousedown="() => mouseDown('G3')">G</button>
-                  </div>
-                </div>
-                <div class="column">
-                  <pre>{{ liveAdsr }}</pre>
-                </div>
-              </div>
-            </transition>
-          </div>
         </div>
-      </div>
-    </section>
-  </div>
-
-  <div class="right-col" style="position:relative;float:right;width:66%;margin:auto;order:2;">
-    <div style="margin: 0;position: absolute;top: 50%;-ms-transform: translateY(25%);transform: translateY(25%);" v-if="!relayMode">
-      <iframe
-        src="https://player.twitch.tv/?channel=auntcolony&parent=auntcolony.com&parent=www.auntcolony.com&parent=please.nyc&parent=www.please.nyc&muted=true"
-        height="720"
-        width="960"
-        allowfullscreen=false>
-      </iframe>
+      </section>
     </div>
-    <div v-if="relayMode" style="margin: 0;position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);text-align: center;color: #666;">
-      <h2 class="title is-4">🎛️ Relay Mode Active</h2>
-      <p>Twitch stream disabled to conserve resources</p>
+
+    <div class="right-col" style="position:relative;float:right;width:66%;margin:auto;order:2;">
+      <div style="margin: 0;position: absolute;top: 50%;-ms-transform: translateY(25%);transform: translateY(25%);" v-if="!relayMode">
+        <iframe
+          src="https://player.twitch.tv/?channel=auntcolony&parent=auntcolony.com&parent=www.auntcolony.com&parent=please.nyc&parent=www.please.nyc&muted=true"
+          height="720"
+          width="960"
+          allowfullscreen=false>
+        </iframe>
+      </div>
+      <div v-if="relayMode" style="margin: 0;position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);text-align: center;color: #666;">
+        <h2 class="title is-4">🎛️ Relay Mode Active</h2>
+        <p>Twitch stream disabled to conserve resources</p>
+        <p style="font-size: 0.8em; color: #999; margin-top: 1rem;">
+          Console: disableRelayMode() to restore stream
+        </p>
+      </div>
     </div>
   </div>
 
@@ -472,9 +477,11 @@
         },
       },
       created() {
+        console.log('Vue created - Initial relay mode:', this.relayMode);
         this.initMidi();
         this.initSocketHandler();
         this.checkRelayModeSettings();
+        console.log('Vue created - Final relay mode:', this.relayMode);
       },
       watch: {
         synthAttack() {
