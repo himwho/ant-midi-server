@@ -333,46 +333,111 @@ window.getEncryptionStatus = function() {
     return status;
 };
 
-// Hook into existing hash updates if security dashboard is available
-if (typeof window.securityApp !== 'undefined') {
-    // Monitor hash updates from security dashboard
-    const originalHashGeneration = window.securityApp.hashGenerator.generateHash;
-    if (originalHashGeneration) {
-        window.securityApp.hashGenerator.generateHash = function(...args) {
-            const hash = originalHashGeneration.apply(this, args);
+// Manual hash update for testing
+window.testHashUpdate = function(customHash = null, customSensorData = null) {
+    const hash = customHash || 'test-hash-' + Date.now().toString(36);
+    const sensorData = customSensorData || {
+        testSensor1: Math.random() * 100,
+        testSensor2: Math.random() * 100,
+        timestamp: Date.now()
+    };
+    
+    window.antCrypt.updateHash(hash, sensorData);
+    console.log('🔐 Test hash update:', hash);
+    return `Test hash logged: ${hash}`;
+};
+
+// Delayed initialization and integration with security dashboard
+function initializeSecurityIntegration() {
+    // Try to hook into security dashboard
+    if (typeof window.securityApp !== 'undefined' && window.securityApp.hashGenerator) {
+        const hashGen = window.securityApp.hashGenerator;
+        
+        // Hook into the actual hash generation method
+        const originalGenerateSecurityHash = hashGen.generateSecurityHash;
+        if (originalGenerateSecurityHash) {
+            hashGen.generateSecurityHash = async function() {
+                const hash = await originalGenerateSecurityHash.call(this);
+                
+                // Get sensor data if available
+                const sensorData = this.sensorData || null;
+                
+                // Update AntCrypt with new hash and sensor data
+                window.antCrypt.updateHash(hash, sensorData);
+                
+                return hash;
+            };
+            console.log('🔐 Hooked into security dashboard hash generation');
+        }
+        
+        // Also hook into the hash update cycle in startHashGeneration
+        const originalStartHashGeneration = hashGen.startHashGeneration;
+        if (originalStartHashGeneration && !hashGen._encryptionLoggerHooked) {
+            hashGen._encryptionLoggerHooked = true;
             
-            // Get sensor data if available
-            const sensorData = this.sensorData || null;
-            
-            // Update AntCrypt with new hash and sensor data
-            window.antCrypt.updateHash(hash, sensorData);
-            
-            return hash;
-        };
+            // Override the interval to capture hash updates
+            const originalSetInterval = setInterval;
+            hashGen.startHashGeneration = function() {
+                originalSetInterval(async () => {
+                    // Update sensor data
+                    this.updateSensorData();
+                    
+                    // Occasionally add CV notes
+                    if (Math.random() < 0.3) {
+                        this.addCVNote(this.generateRandomCVNote());
+                    }
+                    
+                    // Generate new hash
+                    this.currentHash = await this.generateSecurityHash();
+                    this.lastHashUpdate = Date.now();
+                    this.totalHashesGenerated++;
+                    
+                    // LOG THE HASH UPDATE HERE
+                    window.antCrypt.updateHash(this.currentHash, this.sensorData);
+                    
+                    // Add to history
+                    this.hashHistory.unshift({
+                        value: this.currentHash,
+                        timestamp: this.lastHashUpdate
+                    });
+                    
+                    // Keep only last 100 hashes
+                    if (this.hashHistory.length > 100) {
+                        this.hashHistory = this.hashHistory.slice(0, 100);
+                    }
+                    
+                    // Update security level based on activity
+                    this.updateSecurityLevel();
+                    
+                }, 1000); // Update every second
+            };
+            console.log('🔐 Hooked into security dashboard hash generation cycle');
+        }
+        
+        return true;
+    }
+    return false;
+}
+
+// Try immediate integration
+let integrationAttempts = 0;
+function attemptIntegration() {
+    if (initializeSecurityIntegration()) {
+        console.log('🔐 Security dashboard integration successful');
+        return;
+    }
+    
+    integrationAttempts++;
+    if (integrationAttempts < 10) {
+        // Retry every 500ms for up to 5 seconds
+        setTimeout(attemptIntegration, 500);
+    } else {
+        console.log('🔐 Security dashboard not found - manual hash updates required');
     }
 }
 
-// Console startup message
-console.log(`
-🔐 AntCrypt Encryption Logger Loaded
-Available Commands:
-- enableHashLogging()        : Enable hash key logging only
-- enableFullLogging()        : Enable hash + sensor data logging  
-- disableEncryptionLogging() : Disable all encryption logging
-- downloadEncryptionLog()    : Download current log as JSON file
-- clearEncryptionLog()       : Clear current log buffer
-- getEncryptionStatus()      : Show current logging status
-
-Features:
-✅ Client-side hash key logging
-✅ Optional sensor data inclusion
-✅ Auto-save every 5 minutes when active
-✅ Downloadable JSON log files
-✅ 10,000 entry buffer capacity
-✅ Crypto operation tracking (encrypt/decrypt)
-
-Perfect for debugging and security analysis!
-`);
+// Start integration attempts
+attemptIntegration();
 
 // Auto-connect to sensor data if available
 if (typeof io !== 'undefined') {
@@ -394,3 +459,29 @@ if (typeof io !== 'undefined') {
         window.antCrypt.updateHash(hashData.hash || hashData, null);
     });
 }
+
+// Console startup message
+console.log(`
+🔐 AntCrypt Encryption Logger Loaded
+Available Commands:
+- enableHashLogging()        : Enable hash key logging only
+- enableFullLogging()        : Enable hash + sensor data logging  
+- disableEncryptionLogging() : Disable all encryption logging
+- downloadEncryptionLog()    : Download current log as JSON file
+- clearEncryptionLog()       : Clear current log buffer
+- getEncryptionStatus()      : Show current logging status
+- testHashUpdate()           : Generate a test hash update for debugging
+
+Features:
+✅ Client-side hash key logging
+✅ Optional sensor data inclusion
+✅ Auto-save every 5 minutes when active
+✅ Downloadable JSON log files
+✅ 10,000 entry buffer capacity
+✅ Crypto operation tracking (encrypt/decrypt)
+✅ Automatic security dashboard integration
+
+Perfect for debugging and security analysis!
+
+Testing: If you're not seeing hash updates, try testHashUpdate() to verify logging works.
+`);
