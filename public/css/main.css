@@ -74,3 +74,365 @@ body.relay-mode::before {
 body.relay-mode .section {
   margin-top: 3rem; /* Account for the relay mode indicator */
 }
+
+/* ========= DRAWER LAYOUT STYLES ========= */
+
+/* MIDI Control Drawer */
+.midi-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 350px;
+  background: #f7f7f7;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease-in-out;
+  z-index: 1000;
+  overflow-y: auto;
+  border-right: 3px solid #3273dc;
+}
+
+.midi-drawer.open {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  background: #3273dc;
+  color: white;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 1001;
+}
+
+.drawer-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.drawer-toggle {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+.drawer-toggle:hover {
+  background-color: rgba(255,255,255,0.1);
+}
+
+.drawer-content {
+  padding: 1rem;
+}
+
+/* Main Content Area */
+.main-content {
+  transition: margin-left 0.3s ease-in-out;
+  min-height: 100vh;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* Stream Container */
+.stream-container {
+  width: 100%;
+  max-width: 1400px;
+  text-align: center;
+  padding: 2rem;
+  transition: margin-left 0.3s ease-in-out;
+}
+
+.stream-container.drawer-open {
+  margin-left: 350px;
+}
+
+.stream-wrapper {
+  background: white;
+  border-radius: 16px;
+  padding: 2.5rem;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.1), 0 8px 32px rgba(0,0,0,0.08);
+  display: inline-block;
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.stream-wrapper iframe {
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  display: block;
+  margin: 0 auto;
+}
+
+.stream-info {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.stream-title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.stream-subtitle {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+/* Floating Toggle Button */
+.floating-drawer-toggle {
+  position: fixed;
+  top: 2rem;
+  left: 2rem;
+  background: #3273dc;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  width: 60px;
+  height: 60px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+  z-index: 999;
+}
+
+.floating-drawer-toggle:hover {
+  background: #2366d1;
+  transform: scale(1.1);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+}
+
+/* Floating Security Button */
+.floating-security-button {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  width: 60px;
+  height: 60px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.floating-security-button:hover {
+  background: #ff5252;
+  transform: scale(1.1);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+  color: white;
+  text-decoration: none;
+}
+
+/* ========= DRAWER CONTENT STYLES ========= */
+
+/* MIDI Messages Section */
+.midi-messages-section {
+  margin: 1.5rem 0;
+}
+
+.midi-messages-section .subtitle {
+  margin-bottom: 0.75rem;
+  color: #363636;
+}
+
+.table-container {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #dbdbdb;
+  border-radius: 4px;
+}
+
+.midi-messages-table {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.midi-messages-table th {
+  background: #f5f5f5;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Synth Controls */
+.synth-controls {
+  margin-top: 2rem;
+  border-top: 2px solid #dbdbdb;
+  padding-top: 1.5rem;
+}
+
+.synth-panels {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.synth-panel {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid #dbdbdb;
+}
+
+.synth-panel .subtitle {
+  margin-bottom: 1rem;
+  color: #3273dc;
+  font-weight: bold;
+}
+
+.synth-panel .field {
+  margin-bottom: 0.75rem;
+}
+
+.synth-panel .label {
+  margin-bottom: 0.25rem;
+}
+
+/* ADSR Visualization */
+.adsr-display {
+  background: #f5f5f5;
+  border-radius: 4px;
+  padding: 0.75rem;
+  overflow: auto;
+}
+
+.adsr-visual {
+  font-family: 'Courier New', monospace;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  margin: 0;
+  color: #3273dc;
+}
+
+/* Relay Mode Display */
+.relay-mode-display {
+  background: rgba(255,255,255,0.95);
+  border-radius: 12px;
+  padding: 3rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  text-align: center;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.relay-mode-display .title {
+  color: #ff6b6b;
+  margin-bottom: 1rem;
+}
+
+.relay-mode-display .subtitle {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.relay-mode-display .help {
+  color: #999;
+  font-size: 0.9rem;
+}
+
+/* ========= RESPONSIVE DESIGN ========= */
+
+@media (max-width: 1400px) {
+  .stream-wrapper iframe {
+    width: 1024px;
+    height: 576px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .stream-wrapper iframe {
+    width: 960px;
+    height: 540px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .midi-drawer {
+    width: 300px;
+  }
+  
+  .stream-container.drawer-open {
+    margin-left: 300px;
+  }
+  
+  .stream-wrapper iframe {
+    width: 800px;
+    height: 450px;
+  }
+}
+
+@media (max-width: 900px) {
+  .stream-wrapper iframe {
+    width: 640px;
+    height: 360px;
+  }
+}
+
+@media (max-width: 768px) {
+  .midi-drawer {
+    width: 100%;
+    transform: translateX(-100%);
+  }
+  
+  .stream-container.drawer-open {
+    margin-left: 0;
+  }
+  
+  .stream-wrapper {
+    padding: 1rem;
+  }
+  
+  .stream-wrapper iframe {
+    width: 100%;
+    max-width: 560px;
+    height: 315px;
+  }
+  
+  .floating-drawer-toggle, .floating-security-button {
+    top: 1rem;
+    width: 50px;
+    height: 50px;
+    font-size: 1.25rem;
+  }
+  
+  .floating-drawer-toggle {
+    left: 1rem;
+  }
+  
+  .floating-security-button {
+    right: 1rem;
+  }
+}
+
+/* ========= RELAY MODE ADJUSTMENTS ========= */
+
+body.relay-mode .stream-container.drawer-open {
+  margin-left: 350px;
+}
+
+body.relay-mode .stream-container {
+  transition: margin-left 0.3s ease-in-out;
+}
