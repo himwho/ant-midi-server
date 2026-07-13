@@ -1,0 +1,19 @@
+# Xcode build artifacts
+build/
+DerivedData/
+
+# Built app
+bin/desktop-controller.app/
+bin/desktop-controllerDebug.app/
+bin/*.app
+
+# Xcode user state
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+
+# obj output from makefile builds
+obj/
+
+# runtime data/logs
+bin/data/*.txt
+bin/data/settings.json

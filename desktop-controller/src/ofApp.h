@@ -1,13 +1,12 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxSerial.h"
 #include "ofxCv.h"
-#include "ofxGui.h"
 #include "ofxOsc.h"
 #include "OSCPlayer.h"
 #include "VideoHandler.h"
 #include "Hash.h"
+#include <memory>
 
 #define LOGMIDI
 //#define LOGTIME
@@ -43,15 +42,21 @@ class ofApp : public ofBaseApp{
 		void windowResized(int w, int h);
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
-		
+
+        // SETTINGS WINDOW (second GLFW window, see main.cpp)
+        void drawSettings(ofEventArgs& args);
+        void mousePressedSettings(ofMouseEventArgs& args);
+
         // SERIAL SETUP
-        std::vector<ofx::IO::SerialDevice> devices;
+        std::vector<ofSerial> devices;
+        std::vector<std::string> devicePorts;
         int numberOfConnectedDevices = 0;
         bool bInitialSetupComplete = false;
         std::vector<std::string> receivedData;
         std::vector<int> foundDevicesArray;
         bool bInitialRunComplete = false;
         int initialRunCount = 0;
+        std::string readBytesUntilNewline(ofSerial& serial, char until = '\n');
 
         // UTILITY FUNCTIONS
         std::vector<int> convertStrtoVec(string str);
@@ -80,22 +85,45 @@ class ofApp : public ofBaseApp{
         void updateMinMaxValues(int deviceID, std::vector<int> values);
     
         // OSC SETUP
-        std::vector<unique_ptr<OSCPlayerObject>> oscPlayers;
+        std::vector<std::unique_ptr<OSCPlayerObject>> oscPlayers;
         ofxOscSender hashSender;  // OSC sender for hash messages
     
         // VIDEO SETUP
-        ofVideoGrabber vidGrabber;
-        std::vector<unique_ptr<VideoHandler>> videos;
+        // One VideoHandler per detected camera (index == OS device id).
+        std::vector<std::unique_ptr<VideoHandler>> videos;
+        std::vector<int> displayOrder; // indices into videos, in display order
+        void reconcileCameras(); // open/close grabbers to match user settings
     
-        // CV SETUP
-        ofPixels previous;
-        ofImage diff;
-        cv::Scalar diffMean; // color store
-        float threshold;
-        ofxCv::ContourFinder contourFinder;
+        // CV SETUP (one state per camera so several CV cameras can coexist)
+        struct CamCV {
+            ofPixels previous;
+            ofImage diff;
+            ofxCv::ContourFinder contourFinder;
+            std::vector<ofPoint> lastCenter;
+            float lowestVelocityX = 999, lowestVelocityY = 999;
+            float highestVelocityX = 0, highestVelocityY = 0;
+        };
+        std::vector<std::unique_ptr<CamCV>> camCV; // parallel to videos
+        void runCV(int camIndex);
         bool showLabels;
-        float lowestVelocityX = 999, lowestVelocityY = 999, highestVelocityX = 0, highestVelocityY = 0;
-        std::vector<ofPoint> lastCenter;
+
+        // LAYOUT / SETTINGS
+        // 0 = auto grid, otherwise a fixed number of columns
+        int layoutColumns = 0;
+        void loadSettings();
+        void saveSettings();
+        std::vector<int> enabledCameraIndices() const;
+
+        // settings window hit-testing (rebuilt every drawSettings frame)
+        struct UIHit {
+            ofRectangle rect;
+            enum Action { LayoutButton, ToggleEnabled, ToggleCV, ToggleName, MoveUp, MoveDown } action;
+            int value = 0; // layout columns, camera index, or display-order position
+        };
+        std::vector<UIHit> uiHits;
+        bool camerasDirty = false; // set by settings clicks, applied in update()
+        uint64_t lastReconcileMillis = 0;
+        uint64_t lastFpsLogMillis = 0;
     
         // LOG SETUP
         void writeToLog(int deviceID);

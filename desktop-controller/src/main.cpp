@@ -1,13 +1,28 @@
 #include "ofMain.h"
 #include "ofApp.h"
+#include "ofAppGLFWWindow.h"
 
 //========================================================================
 int main( ){
-	ofSetupOpenGL(1280,960,OF_WINDOW);			// <-------- setup the GL context
+	ofGLFWWindowSettings settings;
+	settings.setSize(1280, 960);
+	settings.setPosition(glm::vec2(60, 60));
+	settings.resizable = true;
+	settings.title = "Ant MIDI Desktop Controller";
+	auto mainWindow = ofCreateWindow(settings);
 
-	// this kicks off the running of my app
-	// can be OF_WINDOW or OF_FULLSCREEN
-	// pass in width and height too:
-	ofRunApp(new ofApp());
+	// settings / camera control window
+	settings.setSize(420, 560);
+	settings.setPosition(glm::vec2(1360, 60));
+	settings.resizable = false;
+	settings.title = "Settings";
+	auto settingsWindow = ofCreateWindow(settings);
+	settingsWindow->setVerticalSync(false);
 
+	auto app = std::make_shared<ofApp>();
+	ofAddListener(settingsWindow->events().draw, app.get(), &ofApp::drawSettings);
+	ofAddListener(settingsWindow->events().mousePressed, app.get(), &ofApp::mousePressedSettings);
+
+	ofRunApp(mainWindow, app);
+	ofRunMainLoop();
 }
